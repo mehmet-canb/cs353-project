@@ -1,0 +1,47 @@
+# network:
+#   name: pms-network
+#   driver: default
+#   subnet: 192.168.1.0/24
+
+services:
+
+  web:
+    container_name: pms
+    image: pms
+    command: gunicorn -w 4 -b 0.0.0.0:8000 "pms:create_app()"
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - FLASK_APP=pms
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${POSTGRES_USER}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ${PROJECT_ROOT}/scripts/pg/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "${DB_PORT}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
