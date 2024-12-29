@@ -9,6 +9,8 @@ install-rye:
 	curl -sSf https://rye.astral.sh/get | bash
 
 install-pre-commit:
+	rye sync
+	source .venv/bin/activate
 	pre-commit install
 
 local-run:

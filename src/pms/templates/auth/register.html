@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.html" %}
+<body class="bg-light">
+    <!-- Navigation -->
+    {% include "nav.html" %}
+
+    <!-- Register Form Section -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-5">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-person-plus-fill text-primary display-1"></i>
+                            <h2 class="mt-3 mb-4">Create Account</h2>
+                        </div>
+                        <form method="POST" action="{{ url_for('auth.register') }}">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email address*</label>
+                                <input type="email" maxlength="250" class="form-control" id="email" name="email" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username*</label>
+                                <input type="text" maxlength="100" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="forename" class="form-label">First Name*</label>
+                                    <input type="text" maxlength="255" class="form-control" id="forename" name="forename" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="middlename" class="form-label">Middle Name</label>
+                                    <input type="text" maxlength="100" class="form-control" id="middlename" name="middlename" value="">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="surname" class="form-label">Last Name*</label>
+                                    <input type="text" maxlength="100" class="form-control" id="surname" name="surname" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="phone_no" class="form-label">Phone Number*</label>
+                                <input type="tel" maxlength="15" class="form-control" id="phone_no" name="phone_no" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password*</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_password" class="form-label">Confirm Password*</label>
+                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Register</button>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ url_for('auth.login_page') }}" class="text-decoration-none">Already have an account? Login here</a>
+                            </div>
+                        </form>
+                        {% if error %}
+                        <div class="alert alert-danger mt-3" role="alert">
+                            {{ error }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% include "footer.html" %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
