@@ -1,39 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pool Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
-</head>
+{% include "head.html" %}
 <body class="bg-light">
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-water me-2"></i>
-                Pool Management System
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="bi bi-house-door"></i> Home</a> <!-- TODO: Add link to home page -->
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="bi bi-calendar3"></i> Schedule</a> <!-- TODO: Add link to schedule page -->
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="bi bi-person"></i> Login</a> <!-- TODO: Add link to login page -->
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% include "nav.html" %}
 
     <!-- Hero Section -->
     <div class="container my-5">
@@ -105,28 +75,22 @@
         <div class="row">
             <div class="col-12">
                 <div class="bg-primary text-white rounded-3 p-5 text-center">
-                    <h2 class="display-6 mb-3">Ready to Get Started?</h2>
-                    <p class="lead mb-4">Join our swimming community today and experience seamless pool management.</p>
-                    <button class="btn btn-light btn-lg px-4">Register Now</button>
+                    {% if current_user.is_authenticated %}
+                        <h2 class="display-6 mb-3">Welcome Back!</h2>
+                        <p class="lead mb-4">Ready to manage your pool activities?</p>
+                        <a href="#" class="btn btn-light btn-lg px-4">Go to Dashboard</a>
+                    {% else %}
+                        <h2 class="display-6 mb-3">Ready to Get Started?</h2>
+                        <p class="lead mb-4">Join our swimming community today and experience seamless pool management.</p>
+                        <a href="{{ url_for('auth.register_page') }}" class="btn btn-light btn-lg px-4">Register Now</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5><i class="bi bi-water me-2"></i>Pool Management System</h5>
-                    <p class="small">Empowering swimmers, coaches, and lifeguards with efficient management tools.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="https://www.flaticon.com/free-icons/lifeguard" title="lifeguard icons" style="text-decoration: none; color: gray">Lifeguard icons created by Freepik - Flaticon</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {% include "footer.html" %}
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
