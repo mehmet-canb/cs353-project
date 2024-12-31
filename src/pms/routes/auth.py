@@ -27,7 +27,7 @@ def register():
         or not request.form.get("username")
         or not request.form.get("phone_no")
         or not request.form.get("forename")
-        or not request.form.get("middlename")
+        # or not request.form.get("middlename")
         or not request.form.get("surname")
         or not request.form.get("confirm_password")
         or request.form.get("password") != request.form.get("confirm_password")

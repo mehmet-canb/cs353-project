@@ -4,7 +4,7 @@ CREATE TABLE pms_user (
     password_hash VARCHAR(255) NOT NULL,
     phone_no VARCHAR(15),
     forename VARCHAR(255) NOT NULL,
-    middlename VARCHAR(100) NOT NULL,
+    middlename VARCHAR(100) DEFAULT '',
     surname VARCHAR(100) NOT NULL,
     balance DECIMAL(26, 2) DEFAULT 0
 );

@@ -1,6 +1,8 @@
+from functools import wraps
 from hashlib import sha256
 
-from flask_login import LoginManager, UserMixin, login_user
+from flask import current_app, redirect, url_for
+from flask_login import LoginManager, UserMixin, current_user, login_user
 
 from pms.db import get_cursor
 
@@ -8,8 +10,11 @@ from pms.db import get_cursor
 login_manager = LoginManager()
 
 
+# Note: id is email for our purposes
 class User(UserMixin):
-    pass
+    def __init__(self, id, is_coach=False):
+        self.id = id
+        self.is_coach = is_coach
 
 
 @login_manager.user_loader
@@ -18,8 +23,8 @@ def user_loader(email) -> User | None:
     cursor.execute("SELECT * FROM pms_user WHERE email = %s", (email,))
     user = cursor.fetchone()
     if user:
-        user = User()
-        user.id = email
+        is_coach = is_user_coach(email)
+        user = User(id=email, is_coach=is_coach)
         login_user(user)
         return user
     return None
@@ -38,8 +43,9 @@ def request_loader(request) -> User | None:
     )
     user = cursor.fetchone()
     if user:
-        user = User()
-        user.id = request.form["email"]
+        user = User(
+            id=request.form["email"], is_coach=is_user_coach(request.form["email"])
+        )
         login_user(user, remember=request.form.get("remember", False))
         return user
     return None
@@ -55,6 +61,12 @@ def get_user_by_email(email: str) -> dict | None:
     cursor = get_cursor()
     cursor.execute("SELECT * FROM pms_user WHERE email = %s", (email,))
     return cursor.fetchone()
+
+
+def is_user_coach(email: str) -> bool:
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM coach WHERE email = %s", (email,))
+    return cursor.fetchone() is not None
 
 
 def create_user(
@@ -76,3 +88,28 @@ def create_user(
         (email, password_hash, username, phone_no, forename, middlename, surname),
     )
     cursor.connection.commit()
+
+
+def coach_required(func):
+    """
+    Use this decorator in place of @login_required to restrict access to logged-in coaches only!
+
+    Usage:
+    @bp.route("/dashboard")
+    @coach_required
+    def dashboard():
+        return render_template("dashboard.html")
+    """
+
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return current_app.login_manager.unauthorized()
+        if not current_user.is_coach:
+            return redirect(url_for("main.index"))
+
+        if callable(getattr(current_app, "ensure_sync", None)):
+            return current_app.ensure_sync(func)(*args, **kwargs)
+        return func(*args, **kwargs)
+
+    return decorated_view
