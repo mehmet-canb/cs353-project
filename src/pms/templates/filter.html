@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pool Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-water me-2"></i>
+                Pool Management System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="bi bi-house-door"></i> Home</a> <!-- TODO: Add link to home page -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-calendar3"></i> Schedule</a> <!-- TODO: Add link to schedule page -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-person"></i> Login</a> <!-- TODO: Add link to login page -->
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div>
+        <div>
+            Search for Sessions
+        </div>
+        <div class="d-flex">
+            <div class="w-25">
+                {% if selected_values is defined %}
+                    value of variable: {{ selected_values }}
+                {% else %}
+
+                {% endif %}
+                <form action="{{url_for('main.filter_sessions')}}" method="post" class="d-flex flex-column">
+                    <div class="form-group">
+                        <label for="pool_city">Location</label>
+                        <select id="pool_city" name="pool_city" class="form-control">
+                            {% if location_results is defined %}
+                                {%for i in range(0, location_results_len)%}
+                                    <option value="{{location_results[i].pool_city}}">{{location_results[i].pool_city}}</option>
+                                {%endfor%}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="class_type">Class Type</label>
+                        <select id="class_type" name="class_type" class="form-control">
+                            <option value="Race">Race</option>
+                            <option value="Class">Class</option>
+                            <option value="Individual">Individual</option>
+                            <option value="one-to-one">One-to-One</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="instructor">Instructor</label>
+                        <select id="instructor" name="instructor" class="form-control">
+                            {% if coach_results is defined %}
+                                {%for i in range(0, coach_len)%}
+                                    <option value="{{coach_results[i].username}}">{{coach_results[i].username}}</option>
+                                {%endfor%}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="session_date">Session Date</label>
+                        <input type="date" id="session_date" name="session_date" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="start_hour">Start Hour</label>
+                        <input type="time" id="start_hour" name="start_hour" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_hour">End Hour</label>
+                        <input type="time" id="end_hour" name="end_hour" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="number_of_months">Number of Months (For indivdual sessions)</label>
+                        <input type="number" id="number_of_months" name="number_of_months" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="age_group">Age Group (For class and race sessions)</label>
+                        <select id="age_group" name="age_group" class="form-control">
+                            <option value="kids">Kids</option>
+                            <option value="teens">Teens</option>
+                            <option value="adults">Adults</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="class_level">Class Level (For class sessions)</label>
+                        <select id="class_level" name="class_level" class="form-control">
+                            <option value="kids">Beginner</option>
+                            <option value="teens">Intermediate</option>
+                            <option value="adults">Advanced</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup_date">Signup Date (For class sessions)</label>
+                        <input type="date" id="signup_date" name="signup_date" class="form-control"/>
+                    </div>
+                    <div class="form-group">
+                        <label for="stroke_style">Stroke Style (For race sessions)</label>
+                        <select id="stroke_style" name="stroke_style" class="form-control">
+                            <option value="freestyle">Freestyle</option>
+                            <option value="backstroke">Backstroke</option>
+                            <option value="butterfly">Butterfly</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">Apply</button>
+                </form>
+            </div>
+            <div class="d-flex flex-column flex-grow-1 m-5">
+                {%for i in range(0, len)%}
+                    {%if status == "filter_result"%}
+                        <div class="shadow-sm rounded position-relative">
+                            <a href="#" class="stretched-link"></a>
+                            <div>
+                                Session Name: {{results[i].session_name}}
+                            </div>
+                            <div>
+                                Session Date: {{results[i].session_date}}
+                            </div>
+                            <div>
+                                Start Time: {{results[i].start_hour}}
+                            </div>
+                            <div>
+                                End Time: {{results[i].end_hour}}
+                            </div>
+                            <div>
+                                Price: {{results[i].price}}
+                            </div>
+                            {%if selected_values.class_type == "Individual"%}
+                                <div>
+                                    Number of Months: {{results[i].number_of_months}}
+                                </div>
+                            {%endif%}
+                            {%if selected_values.class_type == "Class"%}
+                                <div>
+                                    Age Group: {{results[i].age_group}}
+                                </div>
+                                <div>
+                                    Class Level: {{results[i].class_level}}
+                                </div>
+                                <div>
+                                    Signup Date: {{results[i].signup_date}}
+                                </div>
+                            {%endif%}
+                            {%if selected_values.class_type == "Race"%}
+                                <div>
+                                    Age Group: {{results[i].age_group}}
+                                </div>
+                                <div>
+                                    Stroke Style: {{results[i].stroke_style}}
+                                </div>
+                            {%endif%}
+                        </div>
+                    {%endif%}
+                {%endfor%}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="bi bi-water me-2"></i>Pool Management System</h5>
+                    <p class="small">Empowering swimmers, coaches, and lifeguards with efficient management tools.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="https://www.flaticon.com/free-icons/lifeguard" title="lifeguard icons" style="text-decoration: none; color: gray">Lifeguard icons created by Freepik - Flaticon</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
