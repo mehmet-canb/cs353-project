@@ -39,7 +39,7 @@
         <h2 class="text-primary mb-4">Search for Sessions</h2>
         <div class="row">
             <div class="col-md-4">
-                <form action="{{ url_for('main.filter_sessions') }}" method="post" class="p-4 bg-white shadow rounded">
+                <form action="{{ url_for('filters.filter_sessions') }}" method="post" class="p-4 bg-white shadow rounded">
                     <div class="mb-3">
                         <label for="pool_city" class="form-label fw-bold">Location</label>
                         <select id="pool_city" name="pool_city" class="form-select">
@@ -135,7 +135,7 @@
                     {% if status == "filter_result" %}
                         {% for i in range(0, len) %}
                             <div class="col-md-6 mb-3">
-                                <form class="p-3 bg-white shadow rounded" action="{{ url_for('main.session_info') }}" method="post">
+                                <form class="p-3 bg-white shadow rounded" action="{{ url_for('filters.session_info') }}" method="post">
                                     <h5 class="fw-bold">Session: {{ results[i].session_name }}</h5>
                                     <p>Date: {{ results[i].session_date }}</p>
                                     <button type="submit" class="btn btn-sm btn-primary w-100">Details</button>
