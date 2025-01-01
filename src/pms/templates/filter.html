@@ -35,41 +35,36 @@
         </div>
     </nav>
 
-    <div>
-        <div>
-            Search for Sessions
-        </div>
-        <div class="d-flex">
-            <div class="w-25">
-                {% if selected_values is defined %}
-                    value of variable: {{ selected_values }}
-                {% else %}
-
-                {% endif %}
-                <form action="{{url_for('main.filter_sessions')}}" method="post" class="d-flex flex-column">
-                    <div class="form-group">
-                        <label for="pool_city">Location</label>
-                        <select id="pool_city" name="pool_city" class="form-control">
+    <div class="container my-5">
+        <h2 class="text-primary mb-4">Search for Sessions</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <form action="{{ url_for('main.filter_sessions') }}" method="post" class="p-4 bg-white shadow rounded">
+                    <div class="mb-3">
+                        <label for="pool_city" class="form-label fw-bold">Location</label>
+                        <select id="pool_city" name="pool_city" class="form-select">
+                            <option value="">-- select an option --</option>
                             {% if location_results is defined %}
-                                {%for i in range(0, location_results_len)%}
-                                    <option value="{{location_results[i].pool_city}}">{{location_results[i].pool_city}}</option>
-                                {%endfor%}
+                                {% for i in range(0, location_results_len) %}
+                                    <option value="{{ location_results[i].pool_city }}">{{ location_results[i].pool_city }}</option>
+                                {% endfor %}
                             {% endif %}
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="class_type">Class Type</label>
-                        <select id="class_type" name="class_type" class="form-control">
+                    <div class="mb-3">
+                        <label for="class_type" class="form-label fw-bold">Class Type</label>
+                        <select id="class_type" name="class_type" class="form-select">
                             <option value="Race">Race</option>
                             <option value="Class">Class</option>
                             <option value="Individual">Individual</option>
-                            <option value="one-to-one">One-to-One</option>
+                            <option value="One-to-One">One-to-One</option>
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="instructor">Instructor</label>
-                        <select id="instructor" name="instructor" class="form-control">
+                    <div class="mb-3">
+                        <label for="instructor" class="form-label fw-bold">Instructor</label>
+                        <select id="instructor" name="instructor" class="form-select">
+                            <option value="">-- select an option --</option>
                             {% if coach_results is defined %}
                                 {%for i in range(0, coach_len)%}
                                     <option value="{{coach_results[i].username}}">{{coach_results[i].username}}</option>
@@ -77,101 +72,82 @@
                             {% endif %}
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="session_date">Session Date</label>
-                        <input type="date" id="session_date" name="session_date" class="form-control"/>
+                    <div class="mb-3">
+                        <label for="session_date" class="form-label fw-bold">Session Date</label>
+                        <input type="date"
+                        id="session_date"
+                        name="session_date"
+                        class="form-control"
+                        {% if selected_values is defined and selected_values["session_date"] is defined %}
+                        value="{{selected_values['session_date']}}"
+                        {% endif %}
+                        />
                     </div>
-                    <div class="form-group">
-                        <label for="start_hour">Start Hour</label>
+                    <div class="mb-3">
+                        <label for="start_hour" class="form-label fw-bold">Start Hour</label>
                         <input type="time" id="start_hour" name="start_hour" class="form-control"/>
                     </div>
-                    <div class="form-group">
-                        <label for="end_hour">End Hour</label>
+                    <div class="mb-3">
+                        <label for="end_hour" class="form-label fw-bold">End Hour</label>
                         <input type="time" id="end_hour" name="end_hour" class="form-control"/>
                     </div>
-                    <div class="form-group">
-                        <label for="number_of_months">Number of Months (For indivdual sessions)</label>
+                    <div class="mb-3">
+                        <label for="number_of_months" class="form-label fw-bold">Number of Months (For indivdual sessions)</label>
                         <input type="number" id="number_of_months" name="number_of_months" class="form-control"/>
                     </div>
-                    <div class="form-group">
-                        <label for="age_group">Age Group (For class and race sessions)</label>
-                        <select id="age_group" name="age_group" class="form-control">
-                            <option value="kids">Kids</option>
-                            <option value="teens">Teens</option>
-                            <option value="adults">Adults</option>
+                    <div class="mb-3">
+                        <label for="age_group" class="form-label fw-bold">Age Group (For class and race sessions)</label>
+                        <select id="age_group" name="age_group" class="form-select">
+                            <option value="">-- select an option --</option>
+                            <option value="Kids">Kids</option>
+                            <option value="Teens">Teens</option>
+                            <option value="Adults">Adults</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="class_level">Class Level (For class sessions)</label>
-                        <select id="class_level" name="class_level" class="form-control">
-                            <option value="kids">Beginner</option>
-                            <option value="teens">Intermediate</option>
-                            <option value="adults">Advanced</option>
+                    <div class="mb-3">
+                        <label for="class_level" class="form-label fw-bold">Class Level (For class sessions)</label>
+                        <select id="class_level" name="class_level" class="form-select">
+                            <option value="">-- select an option --</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label for="signup_date">Signup Date (For class sessions)</label>
+                    <div class="mb-3">
+                        <label for="signup_date" class="form-label fw-bold">Signup Date (For class sessions)</label>
                         <input type="date" id="signup_date" name="signup_date" class="form-control"/>
                     </div>
-                    <div class="form-group">
-                        <label for="stroke_style">Stroke Style (For race sessions)</label>
-                        <select id="stroke_style" name="stroke_style" class="form-control">
-                            <option value="freestyle">Freestyle</option>
-                            <option value="backstroke">Backstroke</option>
-                            <option value="butterfly">Butterfly</option>
+                    <div class="mb-3">
+                        <label for="stroke_style" class="form-label fw-bold">Stroke Style (For race sessions)</label>
+                        <select id="stroke_style" name="stroke_style" class="form-select">
+                            <option value="">-- select an option --</option>
+                            <option value="Freestyle">Freestyle</option>
+                            <option value="Backstroke">Backstroke</option>
+                            <option value="Butterfly">Butterfly</option>
                         </select>
                     </div>
-
-                    <button type="submit">Apply</button>
+                    <!-- Add more form fields as needed -->
+                    <button type="submit" class="btn btn-primary w-100">Apply</button>
                 </form>
             </div>
-            <div class="d-flex flex-column flex-grow-1 m-5">
-                {%for i in range(0, len)%}
-                    {%if status == "filter_result"%}
-                        <div class="shadow-sm rounded position-relative">
-                            <a href="#" class="stretched-link"></a>
-                            <div>
-                                Session Name: {{results[i].session_name}}
+            <div class="col-md-8">
+                <div class="row">
+                    {% if status == "filter_result" %}
+                        {% for i in range(0, len) %}
+                            <div class="col-md-6 mb-3">
+                                <form class="p-3 bg-white shadow rounded" action="{{ url_for('main.session_info') }}" method="post">
+                                    <h5 class="fw-bold">Session: {{ results[i].session_name }}</h5>
+                                    <p>Date: {{ results[i].session_date }}</p>
+                                    <button type="submit" class="btn btn-sm btn-primary w-100">Details</button>
+                                    <input type="hidden" name="session_name" value="{{ results[i].session_name }}">
+                                    <input type="hidden" name="session_date" value="{{ results[i].session_date }}">
+                                    <input type="hidden" name="start_hour" value="{{ results[i].start_hour }}">
+                                    <input type="hidden" name="end_hour" value="{{ results[i].end_hour }}">
+                                </form>
                             </div>
-                            <div>
-                                Session Date: {{results[i].session_date}}
-                            </div>
-                            <div>
-                                Start Time: {{results[i].start_hour}}
-                            </div>
-                            <div>
-                                End Time: {{results[i].end_hour}}
-                            </div>
-                            <div>
-                                Price: {{results[i].price}}
-                            </div>
-                            {%if selected_values.class_type == "Individual"%}
-                                <div>
-                                    Number of Months: {{results[i].number_of_months}}
-                                </div>
-                            {%endif%}
-                            {%if selected_values.class_type == "Class"%}
-                                <div>
-                                    Age Group: {{results[i].age_group}}
-                                </div>
-                                <div>
-                                    Class Level: {{results[i].class_level}}
-                                </div>
-                                <div>
-                                    Signup Date: {{results[i].signup_date}}
-                                </div>
-                            {%endif%}
-                            {%if selected_values.class_type == "Race"%}
-                                <div>
-                                    Age Group: {{results[i].age_group}}
-                                </div>
-                                <div>
-                                    Stroke Style: {{results[i].stroke_style}}
-                                </div>
-                            {%endif%}
-                        </div>
-                    {%endif%}
-                {%endfor%}
+                        {% endfor %}
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>

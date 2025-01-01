@@ -43,7 +43,7 @@ def filter_sessions():
         data = request.form
         class_type_dict = {
             "Individual": "individual_session",
-            "one-to-one": "one_to_one_session",
+            "One-to-One": "one_to_one_session",
             "Class": "class_session",
             "Race": "race",
         }
@@ -99,6 +99,8 @@ def filter_sessions():
                 """
         if len(nonempty_params) > 0:
             query += "WHERE "
+        else:
+            query += ")"
         query_operators = {
             "pool_city": "=",
             "session_date": "=",
@@ -117,8 +119,10 @@ def filter_sessions():
                     x=nonempty_params[i], operator=query_operators[nonempty_params[i]]
                 )
                 query += subq
-        query += "\nSELECT * FROM {dict_entry} NATURAL JOIN first_filter\n".format(
-            dict_entry=class_type_dict[data["class_type"]]
+        query += (
+            "\nSELECT DISTINCT * FROM {dict_entry} NATURAL JOIN first_filter\n".format(
+                dict_entry=class_type_dict[data["class_type"]]
+            )
         )
         if len(session_query) > 0:
             query += "WHERE "
@@ -176,3 +180,64 @@ def init_filter_params(
             and key in class_type_mapping[data["class_type"]]
         ):
             session_params.append(key)
+
+
+@bp.route("/sessions", methods=["POST"])
+def session_info():
+    results = ["a", "b", "c", "d"]
+    status = "get_result"
+    cur = get_cursor()
+    if request.method == "POST":
+        data = request.form
+        query = """SELECT *
+                    FROM swimming_session S NATURAL LEFT OUTER JOIN race NATURAL LEFT
+                    OUTER JOIN class_session NATURAL LEFT OUTER JOIN individual_session
+                    NATURAL LEFT OUTER JOIN one_to_one_session
+                    WHERE S.session_name = %s AND
+                    S.session_date = %s AND S.start_hour = %s
+                    AND S.end_hour = %s;"""
+        cur.execute(
+            query,
+            (
+                data["session_name"],
+                data["session_date"],
+                data["start_hour"],
+                data["end_hour"],
+            ),
+        )
+        results = cur.fetchone()
+        print(
+            (results["end_hour"].hour - results["start_hour"].hour) * 60
+            + results["end_hour"].minute
+            - results["start_hour"].minute
+        )
+        results["duration"] = (
+            (results["end_hour"].hour - results["start_hour"].hour) * 60
+            + results["end_hour"].minute
+            - results["start_hour"].minute
+        )
+        label_converter = {}
+        l1 = {}
+        ignore_list = ["end_hour"]
+        for key, value in results.items():
+            if value and key not in ignore_list:
+                l1[key] = value
+        results = l1
+        results["price"] = "$" + str(results["price"])
+        results["duration"] = str(results["duration"]) + " minutes"
+        for key, value in results.items():
+            label_converter[key] = key.replace("_", " ").title()
+        return render_template(
+            "session.html",
+            results=results,
+            len=len(results),
+            status=status,
+            label_converter=label_converter,
+            label_converter_len=len(label_converter),
+        )
+    return render_template(
+        "session.html",
+        results=results,
+        len=len(results),
+        status=status,
+    )
