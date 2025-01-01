@@ -38,6 +38,7 @@ CREATE TABLE coach (
   	fee_per_hour DECIMAL(26, 2),
   	number_of_hours_thought INT DEFAULT 0,
   	years_of_experience INT DEFAULT 0,
+	rating DECIMAL(3,2), -- Average coach rating
   	FOREIGN KEY (email) REFERENCES pms_user
 );
 
@@ -244,6 +245,7 @@ CREATE TABLE team_attend_race (
   	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
+<<<<<<< Updated upstream
 -- Populating Database --
 
 -- Password is '123'
@@ -320,3 +322,43 @@ INSERT INTO swimmer_attend_session (email, session_name, session_date, start_hou
 -- Benefits
 INSERT INTO benefit (benefit_id, start_date, end_date, swimmer_email) VALUES
 ('B1', '2024-03-01', '2024-06-01', 's@s.com');
+=======
+CREATE TABLE coach_rating (
+	id SERIAL PRIMARY KEY,
+	coach_email VARCHAR(255) NOT NULL REFERENCES coach(email) ON DELETE CASCADE,
+	swimmer_email VARCHAR(255) NOT NULL REFERENCES swimmer(email) ON DELETE CASCADE,
+	session_name VARCHAR(255) NOT NULL,
+    session_date DATE NOT NULL,
+    start_hour TIME NOT NULL,
+    end_hour TIME NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    UNIQUE (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour)
+);
+
+-- Trigger function to update the coach's average rating
+CREATE OR REPLACE FUNCTION update_coach_average_rating()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE coach
+    SET rating = (
+        SELECT AVG(rating)::DECIMAL(3,2)
+        FROM coach_rating
+        WHERE coach_email = NEW.coach_email
+    )
+    WHERE email = NEW.coach_email;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for INSERT on coach_rating
+CREATE TRIGGER trg_update_coach_rating_insert
+AFTER INSERT ON coach_rating
+FOR EACH ROW
+EXECUTE FUNCTION update_coach_average_rating();
+
+-- Trigger for UPDATE on coach_rating
+CREATE TRIGGER trg_update_coach_rating_update
+AFTER UPDATE ON coach_rating
+FOR EACH ROW
+EXECUTE FUNCTION update_coach_average_rating();
+>>>>>>> Stashed changes
