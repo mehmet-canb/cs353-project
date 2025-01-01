@@ -2,8 +2,6 @@ from flask import Blueprint, redirect, render_template, url_for, flash, request,
 import json
 from pms import get_cursor, get_db
 
-# from pms import get_cursor, get_db # TODO: Implement database connection
-
 bp = Blueprint("main", __name__)
 
 EMAIL = "swimmer1@example.com"

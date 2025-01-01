@@ -20,11 +20,13 @@ def create_app(config_class=env_settings):
     app.teardown_appcontext(close_db)
 
     # Register blueprints
-    from pms.routes import main
+    from pms.routes import main, filters
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
+    app.register_blueprint(filters.bp)
     app.register_blueprint(session.bp)
+
 
     # Optional: Register error handlers
     @app.errorhandler(404)
