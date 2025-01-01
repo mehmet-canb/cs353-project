@@ -1,11 +1,9 @@
 from flask import Blueprint, redirect, render_template, url_for, flash, request, jsonify
+from flask_login import current_user, login_required
 import json
 from pms import get_cursor, get_db
 
 bp = Blueprint("main", __name__)
-
-EMAIL = "swimmer1@example.com"
-
 
 @bp.route("/")
 def index():
@@ -19,6 +17,7 @@ def index():
 
 
 @bp.route("/add_item", methods=["POST"])
+@login_required
 def add_item():
     # db = get_db()
     # cur = get_cursor()
@@ -32,10 +31,10 @@ def add_item():
     return redirect(url_for("main.index"))
 
 
-
 @bp.route("/sessions")
+@login_required
 def sessions():
-    user_email = EMAIL  # Using fixed email for testing
+    user_email = current_user.id  # Dynamically get the logged-in user's email
 
     cur = get_cursor()
 
@@ -127,13 +126,13 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
         session_data = cur.fetchone()
 
         if not session_data:
-            return "Session not found."
+            return "Session not found.", 404
 
         max_capacity = session_data["max_capacity"]
         current_participants = session_data["number_of_participants"]
 
         if current_participants >= max_capacity:
-            return "Session is full. You cannot join."
+            return "Session is full. You cannot join.", 400
 
         # Start transaction
         cur.execute("BEGIN;")
@@ -164,21 +163,22 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
 
         # Commit transaction
         cur.execute("COMMIT;")
-        return "Successfully joined the session."
+        return "Successfully joined the session.", 200
     except Exception as e:
         cur.execute("ROLLBACK;")
         print(f"Error joining session: {e}")  # Log the error
-        return "An error occurred while joining the session."
+        return "An error occurred while joining the session.", 500
 
-    
+
 @bp.route("/sessions/join", methods=["POST"])
+@login_required
 def join_session():
     data = request.json  # Receive JSON payload from the fetch request
     session_name = data.get("session_name")
     session_date = data.get("session_date")
     start_hour = data.get("start_hour")
     end_hour = data.get("end_hour")
-    
+
     print("Received data:")
     print(data)
     print(f"Session name: {session_name}")
@@ -186,19 +186,20 @@ def join_session():
     if not all([session_name, session_date, start_hour, end_hour]):
         return "Invalid session data.", 400
 
-    user_email = EMAIL  # Fixed email for testing
-    result = join_session_logic(session_name, session_date, start_hour, end_hour, user_email)
-    return result, 200 if "Successfully" in result else 400
+    user_email = current_user.id  # Dynamically get the logged-in user's email
+    result, status_code = join_session_logic(session_name, session_date, start_hour, end_hour, user_email)
+    return result, status_code
 
 
 @bp.route("/sessions/disenroll", methods=["POST"])
+@login_required
 def disenroll_session():
     data = request.json
     session_name = data.get("session_name")
     session_date = data.get("session_date")
     start_hour = data.get("start_hour")
     end_hour = data.get("end_hour")
-    user_email = EMAIL  # Using fixed email for testing
+    user_email = current_user.id  # Using dynamic email
 
     if not all([session_name, session_date, start_hour, end_hour]):
         return "Invalid session data.", 400
@@ -252,9 +253,10 @@ def disenroll_session():
         cur.execute("ROLLBACK;")
         print(f"Error disenrolling from session: {e}")  # Log the error
         return "An error occurred while disenrolling from the session.", 500
-    
-    
+
+
 @bp.route("/sessions/rate", methods=["POST"])
+@login_required
 def rate_coach():
     data = request.json
     session_name = data.get("session_name")
@@ -262,7 +264,7 @@ def rate_coach():
     start_hour = data.get("start_hour")
     end_hour = data.get("end_hour")
     rating = data.get("rating")
-    user_email = EMAIL  # Using fixed email for testing
+    user_email = current_user.id  # Using dynamic email
 
     # Validate input data
     if not all([session_name, session_date, start_hour, end_hour, rating]):
@@ -347,4 +349,3 @@ def rate_coach():
         cur.execute("ROLLBACK;")
         print(f"Error rating coach: {e}")  # Log the error
         return "An error occurred while rating the coach.", 500
-    
