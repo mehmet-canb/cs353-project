@@ -1,0 +1,19 @@
+# Install rye
+# I chose to let rye handle the python version (dont use OS one etc)
+make install-rye
+# Close vscode and reopen to restart shell properly.
+
+# Afterwards, download project dependencies.
+rye sync
+
+# Now, pre-commit is installed. Rye manages that dependency so lets `rye run` to set-up precommit
+rye run pre-commit install
+
+# Dependencies are now done. We need to initialize the database now.
+make db-init
+
+# After db-init finishes, you should be able to see your container running by typing `docker ps`
+# If the list is empty, re-run `docker compose up db` without the -d flag
+# (-detached -> console input and OUTPUT is hidden from us, lets see our errors!)
+
+# Please fix your errors.

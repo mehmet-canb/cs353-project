@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Sessions - Pool Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .session-card {
+            margin-bottom: 20px;
+        }
+        .d-none {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-water me-2"></i>
+                Pool Management System
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/sessions"><i class="bi bi-calendar3"></i> My Sessions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container my-5">
+        <h2 class="mb-4">My Sessions</h2>
+
+        <!-- Flash Messages -->
+        <div id="flash-messages" class="mb-4"></div>
+
+        <!-- Toggle Buttons -->
+        <div class="btn-group mb-4" role="group">
+            <button type="button" class="btn btn-primary active" id="attended-btn">Attended Sessions</button>
+            <button type="button" class="btn btn-outline-primary" id="available-btn">Available Sessions</button>
+        </div>
+
+        <!-- Sessions Container -->
+        <div id="sessions-container">
+            <!-- Attended Sessions -->
+            <div id="attended-sessions">
+                <h4>Attended Sessions</h4>
+                <div class="row" id="attended-sessions-list">
+                    {% for session in attended_sessions %}
+                        <div class="col-md-6 session-card">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ session.session_name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Date:</strong> {{ session.session_date }}<br>
+                                        <strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br>
+                                        <strong>Class Level:</strong> {{ session.class_level or 'N/A' }}<br>
+                                        <strong>Age Group:</strong> {{ session.age_group or 'N/A' }}<br>
+                                        <strong>Coach:</strong> {{ session.coach_forename or '' }} {{ session.coach_surname or '' }}<br>
+                                        <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
+                                    </p>
+                                    <button class="btn btn-danger disenroll-session-btn"
+                                            data-name="{{ session.session_name }}"
+                                            data-date="{{ session.session_date }}"
+                                            data-start="{{ session.start_hour }}"
+                                            data-end="{{ session.end_hour }}"
+                                            data-coach-email="{{ session.coach_email }}">
+                                        Disenroll
+                                    </button>
+                                    <button class="btn btn-warning rate-coach-btn"
+                                            data-name="{{ session.session_name }}"
+                                            data-date="{{ session.session_date }}"
+                                            data-start="{{ session.start_hour }}"
+                                            data-end="{{ session.end_hour }}"
+                                            data-coach-email="{{ session.coach_email }}">
+                                        Rate Coach
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p>No attended sessions found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Available Sessions -->
+            <div id="available-sessions" class="d-none">
+                <h4>Available Sessions</h4>
+                <div class="row" id="available-sessions-list">
+                    {% for session in available_sessions %}
+                        <div class="col-md-6 session-card">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ session.session_name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Date:</strong> {{ session.session_date }}<br>
+                                        <strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br>
+                                        <strong>Class Level:</strong> {{ session.class_level or 'N/A' }}<br>
+                                        <strong>Age Group:</strong> {{ session.age_group or 'N/A' }}<br>
+                                        <strong>Coach:</strong> {{ session.coach_forename or '' }} {{ session.coach_surname or '' }}<br>
+                                        <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
+                                    </p>
+                                    <button class="btn btn-success join-session-btn"
+                                            data-name="{{ session.session_name }}"
+                                            data-date="{{ session.session_date }}"
+                                            data-start="{{ session.start_hour }}"
+                                            data-end="{{ session.end_hour }}"
+                                            data-coach-email="{{ session.coach_email }}">
+                                        Join
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p>No available sessions found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rating Modal -->
+    <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="ratingModalLabel" class="modal-title">Rate Coach</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="rating-form">
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Select Rating:</label>
+                            <select class="form-select" id="rating" name="rating" required>
+                                <option value="" selected disabled>Select a rating</option>
+                                <option value="1">1 - Very Poor</option>
+                                <option value="2">2 - Poor</option>
+                                <option value="3">3 - Fair</option>
+                                <option value="4">4 - Good</option>
+                                <option value="5">5 - Excellent</option>
+                            </select>
+                        </div>
+                        <input type="hidden" id="rate-session-name" name="session_name">
+                        <input type="hidden" id="rate-session-date" name="session_date">
+                        <input type="hidden" id="rate-start-hour" name="start_hour">
+                        <input type="hidden" id="rate-end-hour" name="end_hour">
+                        <input type="hidden" id="rate-coach-email" name="coach_email">
+                        <button type="submit" class="btn btn-primary">Submit Rating</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const flashMessages = document.getElementById('flash-messages');
+            const attendedBtn = document.getElementById('attended-btn');
+            const availableBtn = document.getElementById('available-btn');
+            const attendedSessions = document.getElementById('attended-sessions');
+            const availableSessions = document.getElementById('available-sessions');
+            const ratingModalElement = document.getElementById('ratingModal');
+            const ratingModal = new bootstrap.Modal(ratingModalElement);
+            const ratingForm = document.getElementById('rating-form');
+
+            // Toggle sessions
+            attendedBtn.addEventListener('click', () => {
+                attendedBtn.classList.add('btn-primary', 'active');
+                attendedBtn.classList.remove('btn-outline-primary');
+                availableBtn.classList.remove('btn-primary', 'active');
+                availableBtn.classList.add('btn-outline-primary');
+                attendedSessions.classList.remove('d-none');
+                availableSessions.classList.add('d-none');
+            });
+
+            availableBtn.addEventListener('click', () => {
+                availableBtn.classList.add('btn-primary', 'active');
+                availableBtn.classList.remove('btn-outline-primary');
+                attendedBtn.classList.remove('btn-primary', 'active');
+                attendedBtn.classList.add('btn-outline-primary');
+                availableSessions.classList.remove('d-none');
+                attendedSessions.classList.add('d-none');
+            });
+
+            // Join session logic
+            document.querySelectorAll('.join-session-btn').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const sessionName = this.dataset.name;
+                    const sessionDate = this.dataset.date;
+                    const startHour = this.dataset.start;
+                    const endHour = this.dataset.end;
+
+                    try {
+                        const response = await fetch('/sessions/join', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_name: sessionName,
+                                session_date: sessionDate,
+                                start_hour: startHour,
+                                end_hour: endHour
+                            })
+                        });
+
+                        const message = await response.text();
+                        flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
+                        if (response.ok) {
+                            setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
+                        }
+                    } catch (error) {
+                        flashMessages.innerHTML = `<div class="alert alert-danger">Error joining session.</div>`;
+                    }
+                });
+            });
+
+            // Disenroll session logic
+            document.querySelectorAll('.disenroll-session-btn').forEach(button => {
+                button.addEventListener('click', async function () {
+                    const sessionName = this.dataset.name;
+                    const sessionDate = this.dataset.date;
+                    const startHour = this.dataset.start;
+                    const endHour = this.dataset.end;
+
+                    try {
+                        const response = await fetch('/sessions/disenroll', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_name: sessionName,
+                                session_date: sessionDate,
+                                start_hour: startHour,
+                                end_hour: endHour
+                            })
+                        });
+
+                        const message = await response.text();
+                        flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
+                        if (response.ok) {
+                            setTimeout(() => location.reload(), 2000); // Refresh the page
+                        }
+                    } catch (error) {
+                        flashMessages.innerHTML = `<div class="alert alert-danger">Error disenrolling from session.</div>`;
+                    }
+                });
+            });
+
+            // Rate coach button logic
+            document.querySelectorAll('.rate-coach-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const sessionName = this.dataset.name;
+                    const sessionDate = this.dataset.date;
+                    const startHour = this.dataset.start;
+                    const endHour = this.dataset.end;
+                    const coachEmail = this.dataset.coachEmail;
+
+                    // Set hidden form fields
+                    document.getElementById('rate-session-name').value = sessionName;
+                    document.getElementById('rate-session-date').value = sessionDate;
+                    document.getElementById('rate-start-hour').value = startHour;
+                    document.getElementById('rate-end-hour').value = endHour;
+                    document.getElementById('rate-coach-email').value = coachEmail;
+
+                    // Show the modal
+                    ratingModal.show();
+                });
+            });
+
+            // Handle rating form submission
+            ratingForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const sessionName = document.getElementById('rate-session-name').value;
+                const sessionDate = document.getElementById('rate-session-date').value;
+                const startHour = document.getElementById('rate-start-hour').value;
+                const endHour = document.getElementById('rate-end-hour').value;
+                const coachEmail = document.getElementById('rate-coach-email').value;
+                const rating = parseInt(document.getElementById('rating').value);
+
+                if (!rating || rating < 1 || rating > 5) {
+                    flashMessages.innerHTML = `<div class="alert alert-warning">Please select a valid rating between 1 and 5.</div>`;
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/sessions/rate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            session_name: sessionName,
+                            session_date: sessionDate,
+                            start_hour: startHour,
+                            end_hour: endHour,
+                            rating: rating
+                        })
+                    });
+
+                    const message = await response.text();
+                    flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
+                    if (response.ok) {
+                        setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
+                    }
+                    ratingModal.hide();
+                } catch (error) {
+                    flashMessages.innerHTML = `<div class="alert alert-danger">Error rating coach.</div>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
