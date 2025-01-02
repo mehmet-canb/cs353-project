@@ -56,6 +56,9 @@
                             {% elif type == 'individual' %}
                             Duration: {{ session.number_of_months }} month(s)
                             {% endif %}
+                            {% if session.details %}
+                            <br>Details: {{ session.details }}
+                            {% endif %}
                         </p>
                         <div class="text-end">
                             <span class="badge bg-primary">${{ "%.2f"|format(session.price) }}</span>

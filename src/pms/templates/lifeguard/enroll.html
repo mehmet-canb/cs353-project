@@ -1,0 +1,48 @@
+{% include "head.html" %}
+
+<body class="bg-light">
+    {% include "nav.html" %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Enroll in Watch Duty</h2>
+        </div>
+        <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="pool_id" class="form-label">Select Pool</label>
+                    <select class="form-select" id="pool_id" name="pool_id" required>
+                        <option value="">Choose a pool...</option>
+                        {% for pool in pools %}
+                        <option value="{{ pool.pool_id }}">{{ pool.pool_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="watch_date" class="form-label">Watch Date</label>
+                    <input type="date" class="form-control" id="watch_date" name="watch_date" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="start_hour" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="start_hour" name="start_hour" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="end_hour" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="end_hour" name="end_hour" required>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('lifeguard.lifeguard_list') }}" class="btn btn-secondary">Back to List</a>
+                    <button type="submit" class="btn btn-primary">Enroll</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>

@@ -21,9 +21,10 @@ def store_session_details():
     start_hour = request.form["start_hour"]
     end_hour = request.form["end_hour"]
     price = request.form.get("price", 0) or 0
+    details = request.form.get("details", "")
     session_type = request.form["session_type"]
 
-    # specialized data
+    # Specialized data
     # For One-to-One:
     special_request = request.form.get("special_request", "")
 
@@ -55,6 +56,7 @@ def store_session_details():
             start_hour=start_hour,
             end_hour=end_hour,
             price=price,
+            details=details,
             session_type=session_type,
             special_request=special_request,
             max_capacity=max_capacity,
@@ -76,6 +78,7 @@ def select_lanes_page():
     start_hour = request.args.get("start_hour")
     end_hour = request.args.get("end_hour")
     price = request.args.get("price", 0)
+    details = request.args.get("details", "")
     session_type = request.args.get("session_type")
 
     # Additional fields:
@@ -137,6 +140,7 @@ def select_lanes_page():
         start_hour=start_hour,
         end_hour=end_hour,
         price=price,
+        details=details,
         session_type=session_type,
         special_request=special_request,
         max_capacity=max_capacity,
@@ -158,6 +162,7 @@ def create_session_final():
     start_hour = request.form["start_hour"]
     end_hour = request.form["end_hour"]
     price = request.form.get("price", 0)
+    details = request.form.get("details", "")
     session_type = request.form["session_type"]
 
     chosen_pool_id = request.form.get("pool_id")
@@ -184,6 +189,7 @@ def create_session_final():
                 start_hour=start_hour,
                 end_hour=end_hour,
                 price=price,
+                details=details,
                 session_type=session_type,
                 error="No pool or lanes selected. Please choose a pool and lanes.",
             )
@@ -195,11 +201,18 @@ def create_session_final():
         # 1) Insert the base session
         cursor.execute(
             """
-            INSERT INTO swimming_session
-            (session_name, session_date, start_hour, end_hour, price, coach_email)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO swimming_session (session_name, session_date, start_hour, end_hour, price, coach_email, details)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
-            (session_name, session_date, start_hour, end_hour, price, current_user.id),
+            (
+                session_name,
+                session_date,
+                start_hour,
+                end_hour,
+                price,
+                current_user.id,
+                details,
+            ),
         )
 
         # 2) Insert the specialized record
@@ -216,10 +229,9 @@ def create_session_final():
         elif session_type == "class_session":
             cursor.execute(
                 """
-                INSERT INTO class_session
-                (session_name, session_date, start_hour, end_hour, min_age, max_age,
-                number_of_participants, max_capacity, class_level, signup_date)
-                VALUES (%s, %s, %s, %s, %s, 0, %s, %s, %s)
+                INSERT INTO class_session (session_name, session_date, start_hour, end_hour, min_age, max_age
+                                           number_of_participants, max_capacity, class_level, signup_date)
+                VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s)
                 """,
                 (
                     session_name,
@@ -237,10 +249,8 @@ def create_session_final():
             # If you need min_age and max_age (like the original code suggests)
             cursor.execute(
                 """
-                INSERT INTO race
-                (session_name, session_date, start_hour,
-                end_hour, min_age, max_age, stroke_style)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     session_name,
@@ -306,7 +316,7 @@ def list_sessions():
     cursor.execute(
         """
         SELECT s.session_name, s.session_date, s.start_hour, s.end_hour,
-               s.price, s.coach_email, o.special_request_comment,
+               s.price, s.coach_email, s.details, o.special_request_comment,
                string_agg(DISTINCT b.pool_id, ', ') as pool_id,
                string_agg(b.lane_id, ', ' ORDER BY b.lane_id) as pool_lanes
         FROM swimming_session s
@@ -331,7 +341,7 @@ def list_sessions():
     cursor.execute(
         """
         SELECT s.session_name, s.session_date, s.start_hour, s.end_hour,
-               s.price, s.coach_email, c.min_age, c.max_age, c.number_of_participants,
+               s.price, s.coach_email, s.details, c.min_age, c.max_age, c.number_of_participants,
                c.max_capacity, c.class_level, c.signup_date,
                string_agg(DISTINCT b.pool_id, ', ') as pool_id,
                string_agg(b.lane_id, ', ' ORDER BY b.lane_id) as pool_lanes
@@ -358,7 +368,7 @@ def list_sessions():
     cursor.execute(
         """
         SELECT s.session_name, s.session_date, s.start_hour, s.end_hour,
-               s.price, s.coach_email, r.min_age, r.max_age, r.stroke_style,
+               s.price, s.coach_email, s.details, r.min_age, r.max_age, r.stroke_style,
                string_agg(DISTINCT b.pool_id, ', ') as pool_id,
                string_agg(b.lane_id, ', ' ORDER BY b.lane_id) as pool_lanes
         FROM swimming_session s
@@ -383,7 +393,7 @@ def list_sessions():
     cursor.execute(
         """
         SELECT s.session_name, s.session_date, s.start_hour, s.end_hour,
-               s.price, s.coach_email, i.number_of_months,
+               s.price, s.coach_email, s.details, i.number_of_months,
                string_agg(DISTINCT b.pool_id, ', ') as pool_id,
                string_agg(b.lane_id, ', ' ORDER BY b.lane_id) as pool_lanes
         FROM swimming_session s
@@ -478,6 +488,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
         new_start = request.form["start_hour"]
         new_end = request.form["end_hour"]
         new_price = request.form.get("price", 0) or 0
+        new_details = request.form.get("details", "")
         session_type = request.form["session_type"]
 
         if session_type == "one_to_one_session":
@@ -486,8 +497,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
                 """
                 WITH swimming_update AS (
                     UPDATE swimming_session
-                    SET session_name = %s, session_date = %s,
-                    start_hour = %s, end_hour = %s, price = %s
+                    SET session_name = %s, session_date = %s, start_hour = %s, end_hour = %s, price = %s, details = %s
                     WHERE session_name = %s
                     AND session_date = %s
                     AND start_hour = %s
@@ -510,6 +520,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     new_start,
                     new_end,
                     new_price,
+                    new_details,
                     session_name,
                     session_date,
                     start_hour,
@@ -530,7 +541,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                         session_date = %s,
                         start_hour = %s,
                         end_hour = %s,
-                        price = %s
+                        price = %s,
+                        details = %s
                     WHERE session_name = %s
                     AND session_date = %s
                     AND start_hour = %s
@@ -559,6 +571,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     new_start,
                     new_end,
                     new_price,
+                    new_details,
                     session_name,
                     session_date,
                     start_hour,
@@ -583,7 +596,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                         session_date = %s,
                         start_hour = %s,
                         end_hour = %s,
-                        price = %s
+                        price = %s,
+                        details = %s
                     WHERE session_name = %s
                     AND session_date = %s
                     AND start_hour = %s
@@ -610,6 +624,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     new_start,
                     new_end,
                     new_price,
+                    new_details,
                     session_name,
                     session_date,
                     start_hour,
@@ -632,7 +647,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                         session_date = %s,
                         start_hour = %s,
                         end_hour = %s,
-                        price = %s
+                        price = %s,
+                        details = %s
                     WHERE session_name = %s
                     AND session_date = %s
                     AND start_hour = %s
@@ -657,6 +673,7 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     new_start,
                     new_end,
                     new_price,
+                    new_details,
                     session_name,
                     session_date,
                     start_hour,

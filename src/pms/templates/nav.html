@@ -10,27 +10,43 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i> Home</a>
+                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i>
+                        Home</a>
                 </li>
+                {% if current_user.is_lifeguard %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('calendar.view_calendar')}}"><i class="bi bi-calendar3"></i> Calendar </a>
+                    <a class="nav-link" href="{{ url_for('lifeguard.lifeguard_list') }}"><i class="bi bi-person"></i>
+                        Lifeguard</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('calendar.view_calendar')}}"><i class="bi bi-calendar3"></i>
+                        Calendar </a>
                 </li>
                 {% if current_user.is_coach %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('session.list_sessions')}}"><i class="bi bi-card-list"></i> Sessions </a>
+                    <a class="nav-link" href="{{ url_for('session.list_sessions')}}"><i class="bi bi-card-list"></i>
+                        Sessions </a>
                 </li>
                 {% else %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.sessions')}}"><i class="bi bi-card-list"></i> Sessions </a>
+                    <a class="nav-link" href="{{ url_for('main.sessions')}}"><i class="bi bi-card-list"></i> Sessions
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.profile') }}"><i class="bi bi-person"></i> Profile</a>
                 </li>
                 {% endif %}
                 <li class="nav-item">
                     {% if current_user.is_authenticated %}
-                        <form action="{{ url_for('auth.logout') }}" method="get">
-                            <button type="submit" class="btn btn-link nav-link"><i class="bi bi-box-arrow-right"></i> Logout</button>
-                        </form>
+                    <form action="{{ url_for('auth.logout') }}" method="get">
+                        <button type="submit" class="btn btn-link nav-link"><i class="bi bi-box-arrow-right"></i>
+                            Logout</button>
+                    </form>
                     {% else %}
-                        <a class="nav-link" href="{{ url_for('auth.login_page') }}"><i class="bi bi-person"></i> Login</a>
+                    <a class="nav-link" href="{{ url_for('auth.login_page') }}"><i class="bi bi-person"></i> Login</a>
                     {% endif %}
                 </li>
             </ul>

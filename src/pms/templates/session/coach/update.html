@@ -40,6 +40,10 @@
                                 <label for="price" class="form-label">Price</label>
                                 <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ session.price }}">
                             </div>
+                            <div class="mb-3">
+                                <label for="details" class="form-label">Details</label>
+                                <textarea class="form-control" id="details" name="details" rows="3">{{ session.details }}</textarea>
+                            </div>
 
                             {% if session_type == 'one_to_one_session' %}
                             <div class="mb-3">

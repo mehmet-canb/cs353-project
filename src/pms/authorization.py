@@ -12,9 +12,10 @@ login_manager = LoginManager()
 
 # Note: id is email for our purposes
 class User(UserMixin):
-    def __init__(self, id, is_coach=False):
+    def __init__(self, id, is_coach=False, is_lifeguard=False):
         self.id = id
         self.is_coach = is_coach
+        self.is_lifeguard = is_lifeguard
 
 
 @login_manager.user_loader
@@ -24,7 +25,8 @@ def user_loader(email) -> User | None:
     user = cursor.fetchone()
     if user:
         is_coach = is_user_coach(email)
-        user = User(id=email, is_coach=is_coach)
+        is_lifeguard = is_user_lifeguard(email)
+        user = User(id=email, is_coach=is_coach, is_lifeguard=is_lifeguard)
         login_user(user)
         return user
     return None
@@ -67,6 +69,12 @@ def get_user_by_email(email: str) -> dict | None:
 def is_user_coach(email: str) -> bool:
     cursor = get_cursor()
     cursor.execute("SELECT * FROM coach WHERE email = %s", (email,))
+    return cursor.fetchone() is not None
+
+
+def is_user_lifeguard(email: str) -> bool:
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM lifeguard WHERE email = %s", (email,))
     return cursor.fetchone() is not None
 
 
