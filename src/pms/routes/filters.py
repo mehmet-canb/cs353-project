@@ -14,7 +14,7 @@ def filter_sessions():
     cur = get_cursor()
     cur.execute("SELECT username FROM pms_user NATURAL JOIN coach", ())
     coach_results = cur.fetchall()
-    cur.execute("SELECT pool_city FROM pool")
+    cur.execute("SELECT DISTINCT pool_city FROM pool")
     location_results = cur.fetchall()
     if request.method == "POST":
         data = request.form
@@ -35,9 +35,10 @@ def filter_sessions():
         session_params = []
         class_type_mapping = {
             "Individual": ["number_of_months"],
-            "Class": ["age_group", "class_level", "signup_date"],
-            "Race": ["age_group", "stroke_style"],
+            "Class": ["class_level", "signup_date"],
+            "Race": ["stroke_style"],
         }
+        user_class_params = []
         init_filter_params(
             data,
             query_attributes,
@@ -46,8 +47,16 @@ def filter_sessions():
             selected_values,
             class_type_mapping,
             session_params,
+            user_class_params,
         )
         cur = get_cursor()
+        age_query = """SELECT EXTRACT(YEAR FROM AGE(birth_date)) AS age
+                        FROM pms_user
+                        WHERE email = %s;
+        """
+        cur.execute(age_query, (current_user.id,))
+        age_result = cur.fetchone()["age"]
+        print(age_result)
         session_query = ""
         session_params_operators = {
             "signup_date": ">=",
@@ -58,21 +67,23 @@ def filter_sessions():
         }
         for i in range(0, len(session_params)):
             selected_values[session_params[i]] = data[session_params[i]]
-            if i == len(session_params) - 1:
-                session_query += "{session_params} {operator} %s".format(
-                    session_params=session_params[i],
-                    operator=session_params_operators[session_params[i]],
-                )
-            else:
-                session_query += "{session_params} {operator} %s AND ".format(
-                    session_params=session_params[i],
-                    operator=session_params_operators[session_params[i]],
-                )
+            session_query += "{session_params} {operator} %s AND ".format(
+                session_params=session_params[i],
+                operator=session_params_operators[session_params[i]],
+            )
+        user_params_operators = {"min_age": "<=", "max_age": ">="}
+        for i in user_class_params:
+            session_query += "{user_param} {operator} %s AND ".format(
+                user_param=i,
+                operator=user_params_operators[i],
+            )
+        session_query = session_query[:-5]
+
         query = """WITH first_filter AS (
                     SELECT session_name, session_date, start_hour, end_hour, price
                     FROM swimming_session
                     JOIN coach ON swimming_session.coach_email=coach.email
-                    NATURAL JOIN lane NATURAL JOIN pool
+                    NATURAL JOIN booking NATURAL JOIN pool
                 """
         if len(nonempty_params) > 0:
             query += "WHERE "
@@ -86,22 +97,17 @@ def filter_sessions():
         }
         for i in range(0, len(nonempty_params)):
             selected_values.update({nonempty_params[i]: data[nonempty_params[i]]})
-            if i == len(nonempty_params) - 1:
-                subq = "{x} {operator} %s)".format(
-                    x=nonempty_params[i], operator=query_operators[nonempty_params[i]]
-                )
-                query += subq
-            else:
-                subq = "{x} {operator} %s AND ".format(
-                    x=nonempty_params[i], operator=query_operators[nonempty_params[i]]
-                )
-                query += subq
+            subq = "{x} {operator} %s AND ".format(
+                x=nonempty_params[i], operator=query_operators[nonempty_params[i]]
+            )
+            query += subq
+        query = query[:-5] + ")"
         query += (
             "\nSELECT DISTINCT * FROM {dict_entry} NATURAL JOIN first_filter\n".format(
                 dict_entry=class_type_dict[data["class_type"]]
             )
         )
-        if len(session_query) > 0:
+        if len(session_query) + len(user_class_params) > 0:
             query += "WHERE "
         query += session_query
         print(query)
@@ -110,6 +116,9 @@ def filter_sessions():
             total_list.append(data[i])
         for i in session_params:
             total_list.append(data[i])
+        if len(user_class_params) > 0:
+            total_list.append(age_result)
+            total_list.append(age_result)
         total_tuple = tuple(total_list)
         print(total_tuple)
         cur.execute(query, total_tuple)
@@ -145,6 +154,7 @@ def init_filter_params(
     selected_values,
     class_type_mapping,
     session_params,
+    user_class_params,
 ):
     for key, value in data.items():
         if value and (key in query_attributes):
@@ -157,6 +167,9 @@ def init_filter_params(
             and key in class_type_mapping[data["class_type"]]
         ):
             session_params.append(key)
+    if data["class_type"] == "Class" or data["class_type"] == "Race":
+        user_class_params.append("min_age")
+        user_class_params.append("max_age")
 
 
 @bp.route("/sessions", methods=["POST"])
