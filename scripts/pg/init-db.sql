@@ -262,7 +262,7 @@ CREATE TABLE coach_rating (
     start_hour TIME NOT NULL,
     end_hour TIME NOT NULL,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
-	comment VARCHAR(512),
+	comment VARCHAR(255) NOT NULL,
     UNIQUE (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour)
 );
 

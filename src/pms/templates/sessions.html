@@ -127,6 +127,11 @@
                                 <option value="5">5 - Excellent</option>
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment (max 255 characters):</label>
+                            <textarea class="form-control" id="comment" name="comment">
+                            </textarea>
+                        </div>
                         <input type="hidden" id="rate-session-name" name="session_name">
                         <input type="hidden" id="rate-session-date" name="session_date">
                         <input type="hidden" id="rate-start-hour" name="start_hour">
@@ -235,13 +240,33 @@
 
             // Rate coach button logic
             document.querySelectorAll('.rate-coach-btn').forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', async function () {
                     const sessionName = this.dataset.name;
                     const sessionDate = this.dataset.date;
                     const startHour = this.dataset.start;
                     const endHour = this.dataset.end;
                     const coachEmail = this.dataset.coachEmail;
+                    try{
+                        const response = await fetch('/sessions/get-rate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                session_name: sessionName,
+                                session_date: sessionDate,
+                                start_hour: startHour,
+                                end_hour: endHour
+                            })
+                        });
 
+                        const message = await response.json();
+                        console.log(message.rating);
+                        document.getElementById('rating').value = message.rating;
+                        document.getElementById('comment').value = message.comment;
+                    }
+
+                    catch(error){
+                        console.error("rate-coach-button click listener error")
+                    }
                     // Set hidden form fields
                     document.getElementById('rate-session-name').value = sessionName;
                     document.getElementById('rate-session-date').value = sessionDate;
@@ -264,6 +289,8 @@
                 const endHour = document.getElementById('rate-end-hour').value;
                 const coachEmail = document.getElementById('rate-coach-email').value;
                 const rating = parseInt(document.getElementById('rating').value);
+                const comment = document.getElementById('comment').value;
+                console.log(comment)
 
                 if (!rating || rating < 1 || rating > 5) {
                     flashMessages.innerHTML = `<div class="alert alert-warning">Please select a valid rating between 1 and 5.</div>`;
@@ -279,7 +306,8 @@
                             session_date: sessionDate,
                             start_hour: startHour,
                             end_hour: endHour,
-                            rating: rating
+                            rating: rating,
+                            comment: comment
                         })
                     });
 

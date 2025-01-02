@@ -242,13 +242,41 @@ def session_info():
         if date_result:
             reason = "Session no longer available"
 
+        signup_date_query = """SELECT * FROM swimming_session S
+                        NATURAL JOIN class_session C
+                        WHERE S.session_name = %s AND
+                        S.session_date = %s AND S.start_hour = %s
+                        AND S.end_hour = %s AND
+                        C.signup_date < CURRENT_DATE;
+        """
+        cur.execute(
+            signup_date_query,
+            (
+                data["session_name"],
+                data["session_date"],
+                data["start_hour"],
+                data["end_hour"],
+            ),
+        )
+        signup_date_result = cur.fetchone()
+        if signup_date_result:
+            reason = "Signup deadline is passed"
+
+        class_type_dict = {
+            "Individual": "individual_session",
+            "One-to-One": "one_to_one_session",
+            "Class": "class_session",
+            "Race": "race",
+        }
+
         query = """SELECT *
-                    FROM swimming_session S NATURAL LEFT OUTER JOIN race NATURAL LEFT
-                    OUTER JOIN class_session NATURAL LEFT OUTER JOIN individual_session
-                    NATURAL LEFT OUTER JOIN one_to_one_session
+                    FROM swimming_session S
+                    NATURAL JOIN {dict_entry}
                     WHERE S.session_name = %s AND
                     S.session_date = %s AND S.start_hour = %s
-                    AND S.end_hour = %s;"""
+                    AND S.end_hour = %s;""".format(
+            dict_entry=class_type_dict[data["class_type"]]
+        )
         cur.execute(
             query,
             (

@@ -134,7 +134,8 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
 
         # Insert into swimmer_attend_session
         insert_query = """
-            INSERT INTO swimmer_attend_session (email, session_name, session_date, start_hour, end_hour)
+            INSERT INTO swimmer_attend_session
+            (email, session_name, session_date, start_hour, end_hour)
             VALUES (%s, %s, %s, %s, %s);
         """
         cur.execute(
@@ -267,14 +268,19 @@ def rate_coach():
     start_hour = data.get("start_hour")
     end_hour = data.get("end_hour")
     rating = data.get("rating")
+    comment = data.get("comment")
     user_email = current_user.id  # Using dynamic email
-
+    print(comment)
+    print(type(comment))
     # Validate input data
     if not all([session_name, session_date, start_hour, end_hour, rating]):
         return "Invalid rating data.", 400
 
     if not isinstance(rating, int) or not (1 <= rating <= 5):
         return "Rating must be an integer between 1 and 5.", 400
+
+    if len(comment) > 255:
+        return "Comment must be smaller than 256 characters", 400
 
     cur = get_cursor()
     # db = get_db()
@@ -334,7 +340,7 @@ def rate_coach():
             # Update existing rating
             update_rating_query = """
                 UPDATE coach_rating
-                SET rating = %s
+                SET rating = %s, comment = %s
                 WHERE swimmer_email = %s AND coach_email = %s
                   AND session_name = %s AND session_date = %s
                   AND start_hour = %s AND end_hour = %s;
@@ -343,6 +349,7 @@ def rate_coach():
                 update_rating_query,
                 (
                     rating,
+                    comment,
                     user_email,
                     coach_email,
                     session_name,
@@ -355,8 +362,10 @@ def rate_coach():
         else:
             # Insert the new rating
             insert_rating_query = """
-                INSERT INTO coach_rating (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour, rating)
-                VALUES (%s, %s, %s, %s, %s, %s, %s);
+                INSERT INTO coach_rating
+                (coach_email, swimmer_email, session_name,
+                session_date, start_hour, end_hour, rating, comment)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
             """
             cur.execute(
                 insert_rating_query,
@@ -368,6 +377,7 @@ def rate_coach():
                     start_hour,
                     end_hour,
                     rating,
+                    comment,
                 ),
             )
             message = "Successfully rated the coach."
@@ -380,3 +390,38 @@ def rate_coach():
         cur.execute("ROLLBACK;")
         print(f"Error rating coach: {e}")  # Log the error
         return "An error occurred while rating the coach.", 500
+
+
+@bp.route("/sessions/get-rate", methods=["POST"])
+@login_required
+def get_rate_coach():
+    data = request.json
+    session_name = data.get("session_name")
+    session_date = data.get("session_date")
+    start_hour = data.get("start_hour")
+    end_hour = data.get("end_hour")
+    user_email = current_user.id  # Using dynamic email
+    print("breakpoint")
+    query = """
+        SELECT rating, comment FROM coach_rating
+        WHERE swimmer_email = %s
+        AND session_name = %s
+        AND session_date = %s
+        AND start_hour = %s
+        AND end_hour = %s;
+    """
+    cur = get_cursor()
+    cur.execute(
+        query,
+        (
+            user_email,
+            session_name,
+            session_date,
+            start_hour,
+            end_hour,
+        ),
+    )
+    result = cur.fetchone()
+    if result:
+        return result
+    return {"rating": "", "comment": ""}

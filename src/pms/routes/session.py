@@ -100,7 +100,8 @@ def select_lanes_page():
 
     cursor = get_cursor()
 
-    # 1) Retrieve all pools & lanes that are NOT booked during [session_date, start_hour, end_hour].
+    # 1) Retrieve all pools & lanes that are
+    #    NOT booked during [session_date, start_hour, end_hour].
     cursor.execute(
         """
         SELECT lane.pool_id, lane.lane_id
@@ -218,7 +219,9 @@ def create_session_final():
         if session_type == "one_to_one_session":
             cursor.execute(
                 """
-                INSERT INTO one_to_one_session (session_name, session_date, start_hour, end_hour, special_request_comment)
+                INSERT INTO one_to_one_session
+                (session_name, session_date, start_hour,
+                end_hour, special_request_comment)
                 VALUES (%s, %s, %s, %s, %s)
                 """,
                 (session_name, session_date, start_hour, end_hour, special_request),
@@ -262,7 +265,8 @@ def create_session_final():
         elif session_type == "individual_session":
             cursor.execute(
                 """
-                INSERT INTO individual_session (session_name, session_date, start_hour, end_hour, number_of_months)
+                INSERT INTO individual_session
+                (session_name, session_date, start_hour, end_hour, number_of_months)
                 VALUES (%s, %s, %s, %s, %s)
                 """,
                 (session_name, session_date, start_hour, end_hour, number_of_months),
@@ -279,7 +283,8 @@ def create_session_final():
         for lane_id in chosen_lanes:
             cursor.execute(
                 """
-                INSERT INTO booking (pool_id, lane_id, session_name, session_date, start_hour, end_hour)
+                INSERT INTO booking
+                (pool_id, lane_id, session_name, session_date, start_hour, end_hour)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
@@ -745,4 +750,42 @@ def delete_session(session_name, session_date, start_hour, end_hour):
         cursor.connection.rollback()
         return redirect(
             url_for("session.list_sessions", error=f"Session deletion failed: {str(e)}")
+        )
+
+
+@bp.route("/coach_comments/view", methods=["POST"])
+@coach_required
+def read_coach_comments():
+    try:
+        cursor = get_cursor()
+        data = request.form
+        session_name = data["session_name"]
+        session_date = data["session_date"]
+        start_hour = data["start_hour"]
+        end_hour = data["end_hour"]
+        coach_email = current_user.id
+
+        query = """
+            SELECT swimmer_email, rating, comment FROM coach_rating
+            WHERE session_name = %s
+            AND session_date = %s
+            AND start_hour = %s
+            AND end_hour = %s
+            AND coach_email = %s
+        """
+
+        cursor.execute(
+            query, (session_name, session_date, start_hour, end_hour, coach_email)
+        )
+        results = cursor.fetchall()
+        print(results)
+        return render_template(
+            "session/coach/list_comments.html",
+            results=results,
+            session_name=session_name,
+        )
+
+    except Exception as e:
+        return redirect(
+            url_for("session.list_sessions", error=f"Read comments failed: {str(e)}")
         )
