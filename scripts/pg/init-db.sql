@@ -116,6 +116,7 @@ CREATE TABLE swimming_session (
   	end_hour TIME,
   	price DECIMAL(26, 2) DEFAULT 0,
   	coach_email VARCHAR(255),
+	details VARCHAR(512),
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
 	FOREIGN KEY (coach_email) REFERENCES coach,
   	CONSTRAINT chk_session_hours CHECK (end_hour >= start_hour)
@@ -134,14 +135,12 @@ CREATE TABLE race (
   	end_hour TIME,
   	min_age INT,
 	max_age INT,
-  	min_age INT,
-	max_age INT,
   	stroke_style VARCHAR(100),
   	report_id VARCHAR(255),
 	CONSTRAINT chk_age_order CHECK (max_age >= min_age),
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
   	FOREIGN KEY (report_id) REFERENCES race_report,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE employee_report (
@@ -179,7 +178,7 @@ CREATE TABLE individual_session (
   	end_hour TIME,
   	number_of_months INT,
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE class_session (
@@ -189,15 +188,13 @@ CREATE TABLE class_session (
   	end_hour TIME,
   	min_age INT,
 	max_age INT,
-  	min_age INT,
-	max_age INT,
   	number_of_participants INT,
   	max_capacity INT,
   	class_level VARCHAR(255),
   	signup_date DATE,
 	CONSTRAINT chk_age_order CHECK (max_age >= min_age),
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE one_to_one_session (
@@ -207,15 +204,16 @@ CREATE TABLE one_to_one_session (
   	end_hour TIME,
   	special_request_comment VARCHAR(512),
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE lifeguard_watch (
 	email VARCHAR(255),
   	pool_id VARCHAR(255),
   	watch_date DATE,
-  	time_slot VARCHAR(5),
-  	PRIMARY KEY (email, pool_id),
+  	start_hour TIME,
+	end_hour TIME,
+  	PRIMARY KEY (email, pool_id, watch_date, start_hour, end_hour),
   	FOREIGN KEY (email) REFERENCES lifeguard,
   	FOREIGN KEY (pool_id) REFERENCES pool
 );
@@ -228,7 +226,7 @@ CREATE TABLE swimmer_attend_session (
   	end_hour TIME,
   	PRIMARY KEY (email, session_name, session_date, start_hour, end_hour),
   	FOREIGN KEY (email) REFERENCES swimmer,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE booking (
@@ -240,7 +238,7 @@ CREATE TABLE booking (
   	end_hour TIME,
   	PRIMARY KEY (pool_id, lane_id, session_name, session_date, start_hour, end_hour),
   	FOREIGN KEY (pool_id, lane_id) REFERENCES lane,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 CREATE TABLE team_attend_race (
@@ -251,7 +249,7 @@ CREATE TABLE team_attend_race (
   	end_hour TIME,
   	PRIMARY KEY (team_name, session_name, session_date, start_hour, end_hour),
   	FOREIGN KEY (team_name) REFERENCES team,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
 
@@ -264,6 +262,7 @@ CREATE TABLE coach_rating (
     start_hour TIME NOT NULL,
     end_hour TIME NOT NULL,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+	comment VARCHAR(512),
     UNIQUE (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour)
 );
 
@@ -296,6 +295,21 @@ EXECUTE FUNCTION update_coach_average_rating();
 
 -- Populating Database --
 
+-- Pools and lanes --
+INSERT INTO pool (pool_id, pool_city, pool_name, max_swimmers, max_depth, min_depth, min_age) VALUES
+('P1', 'Ankara', 'Main Pool', 50, 3.0, 1.2, 5),
+('P2', 'Ankara', 'Training Pool', 30, 2.0, 1.0, 3);
+
+INSERT INTO lane (pool_id, lane_id) VALUES
+('P1', 'L1'),
+('P1', 'L2'),
+('P1', 'L3'),
+('P1', 'L4'),
+('P2', 'L1'),
+('P2', 'L2'),
+('P2', 'L3');
+
+-- Users --
 -- Password is '123'
 INSERT INTO pms_user (email, username, password_hash, phone_no, forename, surname, balance, birth_date) VALUES
 ('c@c.com', 'coach1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567890', 'Coach', 'Smith', 1000.00, '2005-01-01'),
@@ -315,13 +329,20 @@ INSERT INTO swimmer (email, number_of_sessions_attended, member_of_team) VALUES
 ('s@s.com', 10, 'Dolphins'),
 ('n@n.com', 2, NULL);
 
+-- Lifeguard
 INSERT INTO lifeguard (email) VALUES
 ('l@l.com');
 
 INSERT INTO work_days_of_the_week (email, work_day) VALUES
 ('l@l.com', 'Monday'),
 ('l@l.com', 'Wednesday'),
-('l@l.com', 'Friday');
+('l@l.com', 'Friday'),
+('l@l.com', 'Saturday'),
+('l@l.com', 'Sunday');
+
+INSERT INTO lifeguard_watch (email, pool_id, watch_date, start_hour, end_hour) VALUES
+('l@l.com', 'P1', '2025-03-15', '09:00', '13:00'),
+('l@l.com', 'P1', '2025-03-15', '13:00', '17:00');
 
 INSERT INTO pms_member (email, membership_start_date, membership_end_date) VALUES
 ('s@s.com', '2024-01-01', '2024-12-31');
@@ -329,32 +350,19 @@ INSERT INTO pms_member (email, membership_start_date, membership_end_date) VALUE
 INSERT INTO non_member (email, access_hours_start, access_hours_end) VALUES
 ('n@n.com', '09:00', '17:00');
 
--- Pools and lanes --
-INSERT INTO pool (pool_id, pool_city, pool_name, max_swimmers, max_depth, min_depth, min_age) VALUES
-('P1', 'Ankara', 'Main Pool', 50, 3.0, 1.2, 5),
-('P2', 'Ankara', 'Training Pool', 30, 2.0, 1.0, 3);
-
-INSERT INTO lane (pool_id, lane_id) VALUES
-('P1', 'L1'),
-('P1', 'L2'),
-('P1', 'L3'),
-('P1', 'L4'),
-('P2', 'L1'),
-('P2', 'L2'),
-('P2', 'L3');
 
 ------ Create sessions ------
-INSERT INTO swimming_session (session_name, session_date, start_hour, end_hour, price, coach_email) VALUES
+INSERT INTO swimming_session (session_name, session_date, start_hour, end_hour, price, coach_email, details) VALUES
 -- Upcoming sessions of each kind
-('Class-Beginner', '2025-03-15', '10:00', '11:00', 50.00, 'c@c.com'),
-('Individual-Program', '2025-03-15', '12:00', '13:00', 75.00, 'c@c.com'),
-('OneToOne-Special', '2025-03-15', '14:00', '15:00', 100.00, 'c@c.com'),
-('Race-Freestyle', '2025-03-16', '16:00', '17:00', 25.00, 'c@c.com'),
+('Class-Beginner', '2025-03-15', '10:00', '11:00', 50.00, 'c@c.com', 'Beginner class for ages 7-12'),
+('Individual-Program', '2025-03-15', '12:00', '13:00', 75.00, 'c@c.com', 'A program for all ages'),
+('OneToOne-Special', '2025-03-15', '14:00', '15:00', 100.00, 'c@c.com', 'Special one-to-one session'),
+('Race-Freestyle', '2025-03-16', '16:00', '17:00', 25.00, 'c@c.com', 'Freestyle race for ages 18-35'),
 -- Past sessions of each kind
-('(Past) Class-Intermediate', '2024-03-15', '10:00', '11:00', 49.99, 'c@c.com'),
-('(Past) Individual-Program', '2024-03-15', '12:00', '13:00', 74.99, 'c@c.com'),
-('(Past) OneToOne-Special', '2024-03-15', '14:00', '15:00', 99.99, 'c@c.com'),
-('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 24.99, 'c@c.com');
+('(Past) Class-Intermediate', '2024-03-15', '10:00', '11:00', 49.99, 'c@c.com', ''),
+('(Past) Individual-Program', '2024-03-15', '12:00', '13:00', 74.99, 'c@c.com', ''),
+('(Past) OneToOne-Special', '2024-03-15', '14:00', '15:00', 99.99, 'c@c.com', ''),
+('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 24.99, 'c@c.com', '');
 
 INSERT INTO class_session (session_name, session_date, start_hour, end_hour, min_age, max_age, number_of_participants, max_capacity, class_level, signup_date) VALUES
 ('Class-Beginner', '2025-03-15', '10:00', '11:00', 7, 12, 5, 10, 'Beginner', '2024-03-01'),
@@ -368,9 +376,6 @@ INSERT INTO one_to_one_session (session_name, session_date, start_hour, end_hour
 ('OneToOne-Special', '2025-03-15', '14:00', '15:00', 'Focus on butterfly technique'),
 ('(Past) OneToOne-Special', '2024-03-15', '14:00', '15:00', 'Focus on freestyle technique');
 
-INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style) VALUES
-('Race-Freestyle', '2025-03-16', '16:00', '17:00', 18, 35, 'Freestyle'),
-('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 18, 35, 'Backstroke');
 INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style) VALUES
 ('Race-Freestyle', '2025-03-16', '16:00', '17:00', 18, 35, 'Freestyle'),
 ('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 18, 35, 'Backstroke');

@@ -11,6 +11,21 @@ def index():
     return render_template("index.html", current_user=current_user)
 
 
+@bp.route("/profile")
+@login_required
+def profile():
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM pms_user WHERE email = %s", (current_user.id,))
+    user = cursor.fetchone()
+
+    cursor.execute(
+        "SELECT * FROM benefit JOIN pms_user ON benefit.swimmer_email = pms_user.email WHERE benefit.swimmer_email = %s",
+        (current_user.id,),
+    )
+    benefits = cursor.fetchall()
+    return render_template("profile.html", user=user, benefits=benefits)
+
+
 @bp.route("/sessions")
 @login_required
 def sessions():

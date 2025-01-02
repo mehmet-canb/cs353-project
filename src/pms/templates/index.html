@@ -11,9 +11,9 @@
             <div class="col-lg-6 mb-5">
                 <h1 class="display-4 fw-bold text-primary mb-3">Your Complete Pool Management Solution</h1>
                 <p class="lead text-muted mb-4">Whether you're a coach, lifeguard, or swimming enthusiast, our platform streamlines pool activities, lesson bookings, and work schedules all in one place.</p>
+                <!-- "Filter Sessions button -> /filter_sessions" -->
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                    <button class="btn btn-primary btn-lg px-4 me-md-2">Book a Session</button> <!-- TODO: Add link to book a session page -->
-                    <button class="btn btn-outline-primary btn-lg px-4">Staff Login</button> <!-- TODO: Add link to staff login page -->
+                    <a href="{{ url_for('filters.filter_sessions') }}" class="btn btn-primary btn-lg px-4 me-md-2">Filter Sessions</a>
                 </div>
             </div>
             <div class="col-lg-6 text-center text-lg-end">

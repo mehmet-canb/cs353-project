@@ -1,0 +1,66 @@
+{% include "head.html" %}
+
+<body class="bg-light">
+    {% include "nav.html" %}
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Lifeguard Schedule</h1>
+        </div>
+        <div class="container my-5">
+            <div class="card-header">
+                <h4>Contracted Work Days</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for day in contracted_days %}
+                    <li class="list-group-item">{{ day }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Watch Schedule</h4>
+                <a href="{{ url_for('lifeguard.lifeguard_enroll') }}" class="btn btn-primary">
+                    Log Watch Duty (Future or Past)
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Pool</th>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for watch in watches %}
+                            <tr>
+                                <td>{{ watch.pool_id }} - {{ watch.pool_name }}</td>
+                                <td>{{ watch.watch_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ watch.start_hour }}</td>
+                                <td>{{ watch.end_hour }}</td>
+                                <td>
+                                    <form action="{{ url_for('lifeguard.delete_watch',
+                                                    pool_id=watch.pool_id,
+                                                    watch_date=watch.watch_date,
+                                                    start_hour=watch.start_hour,
+                                                    end_hour=watch.end_hour) }}" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</body>
