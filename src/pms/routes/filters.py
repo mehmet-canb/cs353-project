@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request
 
 from pms.db import get_cursor  # TODO: Implement database connection
+from flask_login import current_user, login_required
 
 bp = Blueprint("filters", __name__)
 
 
 @bp.route("/filter_sessions", methods=["GET", "POST"])
+@login_required
 def filter_sessions():
     results = ["a", "b", "c", "d"]
     status = "get_result"
@@ -158,12 +160,75 @@ def init_filter_params(
 
 
 @bp.route("/sessions", methods=["POST"])
+@login_required
 def session_info():
     results = ["a", "b", "c", "d"]
-    status = "get_result"
     cur = get_cursor()
     if request.method == "POST":
         data = request.form
+        reason = ""
+
+        existence_query = """SELECT *
+                    FROM swimmer_attend_session S
+                    WHERE S.email = %s AND
+                    S.session_date = %s AND
+                    (S.start_hour <= %s OR S.end_hour >= %s);"""
+        cur.execute(
+            existence_query,
+            (
+                current_user.id,
+                data["session_date"],
+                data["start_hour"],
+                data["end_hour"],
+            ),
+        )
+        isExists = cur.fetchone()
+        if isExists:
+            reason = "Course conflict"
+        cost_query = """ SELECT balance, price
+                    FROM pms_user P, swimming_session S
+                    WHERE P.email = %s AND
+                    S.session_name = %s AND
+                    S.session_date = %s AND
+                    S.start_hour = %s AND
+                    S.end_hour = %s;
+                    """
+        cur.execute(
+            cost_query,
+            (
+                current_user.id,
+                data["session_name"],
+                data["session_date"],
+                data["start_hour"],
+                data["end_hour"],
+            ),
+        )
+        cost_json = cur.fetchone()
+        balance = cost_json["balance"]
+        price = cost_json["price"]
+        if balance < price:
+            reason = "Balance not enough"
+
+        date_query = """SELECT * FROM swimming_session S
+                        WHERE S.session_name = %s AND
+                        S.session_date = %s AND S.start_hour = %s
+                        AND S.end_hour = %s AND
+                        S.session_date < CURRENT_DATE OR
+                        (S.session_date = CURRENT_DATE AND S.start_hour < CURRENT_TIME);
+        """
+        cur.execute(
+            date_query,
+            (
+                data["session_name"],
+                data["session_date"],
+                data["start_hour"],
+                data["end_hour"],
+            ),
+        )
+        date_result = cur.fetchone()
+        if date_result:
+            reason = "Session no longer available"
+
         query = """SELECT *
                     FROM swimming_session S NATURAL LEFT OUTER JOIN race NATURAL LEFT
                     OUTER JOIN class_session NATURAL LEFT OUTER JOIN individual_session
@@ -181,11 +246,13 @@ def session_info():
             ),
         )
         results = cur.fetchone()
-        print(
-            (results["end_hour"].hour - results["start_hour"].hour) * 60
-            + results["end_hour"].minute
-            - results["start_hour"].minute
-        )
+        if (
+            results["max_capacity"]
+            and results["number_of_participants"]
+            and results["max_capacity"] == results["number_of_participants"]
+        ):
+            reason = "Class full"
+
         results["duration"] = (
             (results["end_hour"].hour - results["start_hour"].hour) * 60
             + results["end_hour"].minute
@@ -206,13 +273,13 @@ def session_info():
             "filter/session.html",
             results=results,
             len=len(results),
-            status=status,
             label_converter=label_converter,
             label_converter_len=len(label_converter),
+            reason=reason,
+            canBeTaken=(len(reason) == 0),
         )
     return render_template(
         "filter/session.html",
         results=results,
         len=len(results),
-        status=status,
     )
