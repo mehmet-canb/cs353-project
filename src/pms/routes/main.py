@@ -21,7 +21,7 @@ def sessions():
     # Retrieve attended sessions with additional details
     attended_query = """
         SELECT ss.session_name, ss.session_date, ss.start_hour, ss.end_hour,
-               cs.class_level, cs.age_group,
+               cs.class_level, CONCAT(cs.min_age, '-', cs.max_age) AS age_group,
                pu.forename AS coach_forename, pu.surname AS coach_surname,
                c.rating,
                c.email AS coach_email
@@ -49,7 +49,7 @@ def sessions():
     # Retrieve available sessions with additional details
     available_query = """
         SELECT ss.session_name, ss.session_date, ss.start_hour, ss.end_hour,
-               cs.class_level, cs.age_group,
+               cs.class_level, CONCAT(cs.min_age, ' - ', cs.max_age) AS age_group,
                pu.forename AS coach_forename, pu.surname AS coach_surname,
                c.rating,
                c.email AS coach_email

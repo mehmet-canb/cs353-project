@@ -71,11 +71,11 @@
                                                         <strong>Special Request:</strong>
                                                         <p>{{ session.extra_info }}</p>
                                                     {% elif session.session_type == 'class' %}
-                                                        <strong>Age Group:</strong> {{ session.age_group }}<br>
+                                                        <strong>Age Group:</strong> {{ session.min_age }}-{{ session.max_age }}<br>
                                                         <strong>Level:</strong> {{ session.class_level }}<br>
                                                         <strong>Capacity:</strong>{{ session.max_capacity }}
                                                     {% elif session.session_type == 'race' %}
-                                                        <strong>Age Group:</strong> {{ session.age_group }}<br>
+                                                        <strong>Age Group:</strong> {{ session.min_age }}-{{ session.max_age }}<br>
                                                         <strong>Stroke Style:</strong> {{ session.stroke_style }}
                                                     {% else %}
                                                         <strong>Number of Months:</strong>

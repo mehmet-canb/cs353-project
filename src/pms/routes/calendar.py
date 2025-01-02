@@ -29,7 +29,8 @@ def view_calendar():
                         'one_to_one' as session_type,
                         oto.special_request_comment as extra_info,
                         NULL as max_capacity,
-                        NULL as age_group,
+                        NULL as min_age,
+                        NULL as max_age,
                         NULL as class_level,
                         NULL as stroke_style
                     FROM swimming_session s
@@ -47,7 +48,8 @@ def view_calendar():
                         'class' as session_type,
                         NULL as extra_info,
                         c.max_capacity,
-                        c.age_group,
+                        c.min_age,
+                        c.max_age,
                         c.class_level,
                         NULL as stroke_style
                     FROM swimming_session s
@@ -65,7 +67,8 @@ def view_calendar():
                         'race' as session_type,
                         NULL as extra_info,
                         NULL as max_capacity,
-                        r.age_group,
+                        r.min_age,
+                        r.max_age,
                         NULL as class_level,
                         r.stroke_style
                     FROM swimming_session s
@@ -83,7 +86,8 @@ def view_calendar():
                         'individual' as session_type,
                         CONCAT(i.number_of_months, ' months') as extra_info,
                         NULL as max_capacity,
-                        NULL as age_group,
+                        NULL as min_age,
+                        NULL as max_age,
                         NULL as class_level,
                         NULL as stroke_style
                     FROM swimming_session s
@@ -126,7 +130,8 @@ def view_calendar():
                             ELSE NULL
                         END as extra_info,
                         c.max_capacity,
-                        COALESCE(c.age_group, r.age_group) as age_group,
+                        COALESCE(c.min_age, r.min_age) as min_age,
+                        COALESCE(c.max_age, r.max_age) as max_age,
                         c.class_level,
                         r.stroke_style
                     FROM swimmer_attend_session sas
