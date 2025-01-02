@@ -10,14 +10,23 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i> Home</a> <!-- TODO: Add link to home page -->
+                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i> Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="bi bi-calendar3"></i> Schedule</a> <!-- TODO: Add link to schedule page -->
+                    <a class="nav-link" href="{{ url_for('calendar.view_calendar')}}"><i class="bi bi-calendar3"></i> Calendar </a>
                 </li>
+                {% if current_user.is_coach %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('session.list_sessions')}}"><i class="bi bi-card-list"></i> Sessions </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.sessions')}}"><i class="bi bi-card-list"></i> Sessions </a>
+                </li>
+                {% endif %}
                 <li class="nav-item">
                     {% if current_user.is_authenticated %}
-                        <form action="{{ url_for('auth.logout') }}" method="post">
+                        <form action="{{ url_for('auth.logout') }}" method="get">
                             <button type="submit" class="btn btn-link nav-link"><i class="bi bi-box-arrow-right"></i> Logout</button>
                         </form>
                     {% else %}
