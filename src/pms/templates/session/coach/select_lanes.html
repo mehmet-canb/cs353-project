@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.html" %}
+
+<body class="bg-light">
+    <!-- Navigation -->
+    {% include "nav.html" %}
+
+    <div class="container my-5">
+        <h2>Select Lanes (Step 2)</h2>
+        <p class="text-muted">Choose the pool and lanes for your session.</p>
+
+        <form method="POST" action="{{ url_for('session.create_session_final') }}">
+            <!-- Hidden fields to pass data to final route -->
+            <input type="hidden" name="session_name" value="{{ session_name }}">
+            <input type="hidden" name="session_date" value="{{ session_date }}">
+            <input type="hidden" name="start_hour" value="{{ start_hour }}">
+            <input type="hidden" name="end_hour" value="{{ end_hour }}">
+            <input type="hidden" name="price" value="{{ price }}">
+            <input type="hidden" name="session_type" value="{{ session_type }}">
+
+            <!-- Specialized fields -->
+            <input type="hidden" name="special_request" value="{{ special_request }}">
+            <input type="hidden" name="age_group" value="{{ age_group }}">
+            <input type="hidden" name="max_capacity" value="{{ max_capacity }}">
+            <input type="hidden" name="class_level" value="{{ class_level }}">
+            <input type="hidden" name="signup_date" value="{{ signup_date }}">
+            <input type="hidden" name="min_age" value="{{ min_age }}">
+            <input type="hidden" name="max_age" value="{{ max_age }}">
+            <input type="hidden" name="stroke_style" value="{{ stroke_style }}">
+            <input type="hidden" name="number_of_months" value="{{ number_of_months }}">
+
+            <div class="mb-3">
+                <label for="pool_id" class="form-label">Select Pool</label>
+                <select id="pool_id" name="pool_id" class="form-select" required>
+                    <option value="" disabled selected>Select a pool</option>
+                    {% for p_id, lanes in pool_lane_map.items() %}
+                    <option value="{{ p_id }}">{{ p_id }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Checkboxes for lanes -->
+            <div class="mb-3">
+                <label class="form-label">Available Lanes (check one or more):</label>
+                {% for p_id, lanes in pool_lane_map.items() %}
+                <div class="pool-lanes" data-pool-id="{{ p_id }}" style="display: none;">
+                    <h5>Pool: {{ p_id }}</h5>
+                    {% for l_id in lanes %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="lane_id" value="{{ l_id }}" id="{{ p_id }}_{{ l_id }}">
+                        <label class="form-check-label" for="{{ p_id }}_{{ l_id }}">
+                            Lane {{ l_id }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <script>
+                const poolSelect = document.getElementById('pool_id');
+                const poolLaneDivs = document.querySelectorAll('.pool-lanes');
+
+                poolSelect.addEventListener('change', function() {
+                    const selectedPool = this.value;
+                    poolLaneDivs.forEach(div => {
+                        if (div.dataset.poolId === selectedPool) {
+                            div.style.display = 'block';
+                        } else {
+                            div.style.display = 'none';
+                        }
+                    });
+                });
+            </script>
+
+            <button type="submit" class="btn btn-success">Confirm & Create Session</button>
+        </form>
+
+        {% if error %}
+            <div class="alert alert-danger mt-3" role="alert">
+            {{ error }}
+            </div>
+        {% endif %}
+    </div>
+
+    {% include "footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
