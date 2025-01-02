@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+{% include "head.html" %}
+
 <head>
     <meta charset="UTF-8">
     <title>My Sessions - Pool Management System</title>
@@ -9,34 +11,15 @@
         .session-card {
             margin-bottom: 20px;
         }
+
         .d-none {
             display: none;
         }
     </style>
 </head>
+
 <body class="bg-light">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="bi bi-water me-2"></i>
-                Pool Management System
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/sessions"><i class="bi bi-calendar3"></i> My Sessions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right"></i> Logout</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% include "nav.html" %}
 
     <!-- Main Container -->
     <div class="container my-5">
@@ -58,39 +41,34 @@
                 <h4>Attended Sessions</h4>
                 <div class="row" id="attended-sessions-list">
                     {% for session in attended_sessions %}
-                        <div class="col-md-6 session-card">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ session.session_name }}</h5>
-                                    <p class="card-text">
-                                        <strong>Date:</strong> {{ session.session_date }}<br>
-                                        <strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br>
-                                        <strong>Class Level:</strong> {{ session.class_level or 'N/A' }}<br>
-                                        <strong>Age Group:</strong> {{ session.age_group or 'N/A' }}<br>
-                                        <strong>Coach:</strong> {{ session.coach_forename or '' }} {{ session.coach_surname or '' }}<br>
-                                        <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
-                                    </p>
-                                    <button class="btn btn-danger disenroll-session-btn"
-                                            data-name="{{ session.session_name }}"
-                                            data-date="{{ session.session_date }}"
-                                            data-start="{{ session.start_hour }}"
-                                            data-end="{{ session.end_hour }}"
-                                            data-coach-email="{{ session.coach_email }}">
-                                        Disenroll
-                                    </button>
-                                    <button class="btn btn-warning rate-coach-btn"
-                                            data-name="{{ session.session_name }}"
-                                            data-date="{{ session.session_date }}"
-                                            data-start="{{ session.start_hour }}"
-                                            data-end="{{ session.end_hour }}"
-                                            data-coach-email="{{ session.coach_email }}">
-                                        Rate Coach
-                                    </button>
-                                </div>
+                    <div class="col-md-6 session-card">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ session.session_name }}</h5>
+                                <p class="card-text">
+                                    {% if session.session_date %} <strong>Date:</strong> {{ session.session_date }}<br> {% endif %}
+                                    {% if session.start_hour and session.end_hour %}<strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br> {% endif %}
+                                    {% if session.class_level %}<strong>Class Level:</strong> {{ session.class_level}}<br> {% endif %}
+                                    {% if session.age_group %}<strong>Age Group:</strong> {{session.age_group}}<br> {% endif %}
+                                    {% if session.coach_forename and session.coach_surname %}<strong>Coach:</strong> {{session.coach_forename}} {{session.coach_surname}}<br> {% endif %}
+                                    <strong>Coach Rating:</strong> {{session.rating or 'N/A'}}
+                                </p>
+                                <button class="btn btn-danger disenroll-session-btn"
+                                    data-name="{{ session.session_name }}" data-date="{{ session.session_date }}"
+                                    data-start="{{ session.start_hour }}" data-end="{{ session.end_hour }}"
+                                    data-coach-email="{{ session.coach_email }}">
+                                    Disenroll
+                                </button>
+                                <button class="btn btn-warning rate-coach-btn" data-name="{{ session.session_name }}"
+                                    data-date="{{ session.session_date }}" data-start="{{ session.start_hour }}"
+                                    data-end="{{ session.end_hour }}" data-coach-email="{{ session.coach_email }}">
+                                    Rate Coach
+                                </button>
                             </div>
                         </div>
+                    </div>
                     {% else %}
-                        <p>No attended sessions found.</p>
+                    <p>No attended sessions found.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -100,31 +78,28 @@
                 <h4>Available Sessions</h4>
                 <div class="row" id="available-sessions-list">
                     {% for session in available_sessions %}
-                        <div class="col-md-6 session-card">
-                            <div class="card h-100 shadow-sm">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ session.session_name }}</h5>
-                                    <p class="card-text">
-                                        <strong>Date:</strong> {{ session.session_date }}<br>
-                                        <strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br>
-                                        <strong>Class Level:</strong> {{ session.class_level or 'N/A' }}<br>
-                                        <strong>Age Group:</strong> {{ session.age_group or 'N/A' }}<br>
-                                        <strong>Coach:</strong> {{ session.coach_forename or '' }} {{ session.coach_surname or '' }}<br>
-                                        <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
-                                    </p>
-                                    <button class="btn btn-success join-session-btn"
-                                            data-name="{{ session.session_name }}"
-                                            data-date="{{ session.session_date }}"
-                                            data-start="{{ session.start_hour }}"
-                                            data-end="{{ session.end_hour }}"
-                                            data-coach-email="{{ session.coach_email }}">
-                                        Join
-                                    </button>
-                                </div>
+                    <div class="col-md-6 session-card">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ session.session_name }}</h5>
+                                <p class="card-text">
+                                    {% if session.session_date %} <strong>Date:</strong> {{ session.session_date }}<br> {% endif %}
+                                    {% if session.start_hour and session.end_hour %}<strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br> {% endif %}
+                                    {% if session.class_level %}<strong>Class Level:</strong> {{ session.class_level}}<br> {% endif %}
+                                    {% if session.age_group %}<strong>Age Group:</strong> {{session.age_group}}<br> {% endif %}
+                                    {% if session.coach_forename and session.coach_surname %}<strong>Coach:</strong> {{session.coach_forename}} {{session.coach_surname}}<br> {% endif %}
+                                    <strong>Coach Rating:</strong> {{session.rating or 'N/A'}}
+                                </p>
+                                <button class="btn btn-success join-session-btn" data-name="{{ session.session_name }}"
+                                    data-date="{{ session.session_date }}" data-start="{{ session.start_hour }}"
+                                    data-end="{{ session.end_hour }}" data-coach-email="{{ session.coach_email }}">
+                                    Join
+                                </button>
                             </div>
                         </div>
+                    </div>
                     {% else %}
-                        <p>No available sessions found.</p>
+                    <p>No available sessions found.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -320,5 +295,9 @@
             });
         });
     </script>
+
+    {% include "footer.html" %}
+
 </body>
+
 </html>
