@@ -134,8 +134,6 @@ CREATE TABLE race (
   	end_hour TIME,
   	min_age INT,
 	max_age INT,
-  	min_age INT,
-	max_age INT,
   	stroke_style VARCHAR(100),
   	report_id VARCHAR(255),
 	CONSTRAINT chk_age_order CHECK (max_age >= min_age),
@@ -187,8 +185,6 @@ CREATE TABLE class_session (
   	session_date DATE,
   	start_hour TIME,
   	end_hour TIME,
-  	min_age INT,
-	max_age INT,
   	min_age INT,
 	max_age INT,
   	number_of_participants INT,
@@ -264,6 +260,7 @@ CREATE TABLE coach_rating (
     start_hour TIME NOT NULL,
     end_hour TIME NOT NULL,
     rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+	comment VARCHAR(255) NOT NULL,
     UNIQUE (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour)
 );
 
@@ -368,9 +365,6 @@ INSERT INTO one_to_one_session (session_name, session_date, start_hour, end_hour
 ('OneToOne-Special', '2025-03-15', '14:00', '15:00', 'Focus on butterfly technique'),
 ('(Past) OneToOne-Special', '2024-03-15', '14:00', '15:00', 'Focus on freestyle technique');
 
-INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style) VALUES
-('Race-Freestyle', '2025-03-16', '16:00', '17:00', 18, 35, 'Freestyle'),
-('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 18, 35, 'Backstroke');
 INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style) VALUES
 ('Race-Freestyle', '2025-03-16', '16:00', '17:00', 18, 35, 'Freestyle'),
 ('(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00', 18, 35, 'Backstroke');

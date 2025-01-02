@@ -64,6 +64,17 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form
+                                action="{{ url_for('session.read_coach_comments') }}"
+                                method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-info ms-2">
+                                    <i class="bi bi-book"></i>
+                                </button>
+                                <input type="hidden" name="session_name" value="{{session.session_name}}"/>
+                                <input type="hidden" name="session_date" value="{{session.session_date}}"/>
+                                <input type="hidden" name="start_hour" value="{{session.start_hour}}"/>
+                                <input type="hidden" name="end_hour" value="{{session.end_hour}}"/>
+                            </form>
+                            <form
                                 action="{{ url_for('session.delete_session', session_name=session.session_name, session_date=session.session_date, start_hour=session.start_hour, end_hour=session.end_hour) }}"
                                 method="POST" class="d-inline">
                                 <button type="submit" class="btn btn-sm btn-danger ms-2"
