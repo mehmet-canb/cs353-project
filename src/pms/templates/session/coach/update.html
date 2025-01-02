@@ -50,8 +50,10 @@
 
                             {% if session_type == 'class_session' %}
                             <div class="mb-3">
-                                <label for="age_group" class="form-label">Age Group*</label>
-                                <input type="text" class="form-control" id="age_group" name="age_group" value="{{ session.age_group }}" required>
+                                <label for="min_age" class="form-label">Min Age*</label>
+                                <input type="number" class="form-control" id="min_age" name="min_age" value="{{ session.min_age }}" required>
+                                <label for="max_age" class="form-label">Max Age*</label>
+                                <input type="number" class="form-control" id="max_age" name="max_age" value="{{ session.max_age }}" required>
                             </div>
                             <div class="mb-3">
                                 <label for="max_capacity" class="form-label">Maximum Capacity*</label>
@@ -69,8 +71,10 @@
 
                             {% if session_type == 'race' %}
                             <div class="mb-3">
-                                <label for="comp_age_group" class="form-label">Age Group*</label>
-                                <input type="text" class="form-control" id="comp_age_group" name="comp_age_group" value="{{ session.age_group }}" required>
+                                <label for="min_age" class="form-label">Min Age*</label>
+                                <input type="number" class="form-control" id="min_age" name="min_age" value="{{ session.min_age }}" required>
+                                <label for="max_age" class="form-label">Max Age*</label>
+                                <input type="number" class="form-control" id="max_age" name="max_age" value="{{ session.max_age }}" required>
                             </div>
                             <div class="mb-3">
                                 <label for="stroke_style" class="form-label">Stroke Style*</label>

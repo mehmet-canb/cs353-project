@@ -46,10 +46,12 @@
                         <p>Special Request: {{ session.special_request_comment }}</p>
                         {% elif type == 'classes' %}
                         <p>Level: {{ session.class_level }}<br>
-                            Capacity: {{ session.number_of_participants }}/{{ session.max_capacity }}</p>
+                            Capacity: {{ session.number_of_participants }}/{{ session.max_capacity }}<br>
+                            Age Group: {{ session.min_age }}-{{ session.max_age }}
+                        </p>
                         {% elif type == 'races' %}
                         <p>Style: {{ session.stroke_style }}<br>
-                            Age Group: {{ session.age_group }}</p>
+                            Age Group: {{ session.min_age }}-{{ session.max_age }}</p>
                         {% elif type == 'individual' %}
                         <p>Duration: {{ session.number_of_months }} month(s)</p>
                         {% endif %}

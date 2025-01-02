@@ -38,24 +38,7 @@
                                 <input type="number" step="0.01" class="form-control" id="price" name="price">
                             </div>
                             <!-- Show session type specific values after being selected -->
-                            <!-- one_to_one_session (
-                                special_request_comment VARCHAR(512),
 
-                                class_session (
-                                    age_group VARCHAR(100),
-                                    number_of_participants INT,
-                                    max_capacity INT,
-                                    class_level VARCHAR(255),
-                                    signup_date DATE,
-
-                                individual_session (
-                                    number_of_months INT,
-
-                                race(
-                                    age_group VARCHAR(100),
-                                    stroke_style VARCHAR(100),
-                                    report_id VARCHAR(255),
-                            -->
                             <div class="mb-3">
                                 <label for="session_type" class="form-label">Session Type*</label>
                                 <select class="form-select" id="session_type" name="session_type" required>
@@ -99,8 +82,9 @@
                             <!-- Competition Session Fields -->
                             <div id="competition_fields" style="display: none;">
                                 <div class="mb-3">
-                                    <label for="comp_age_group" class="form-label">Age Group*</label>
-                                    <input type="text" class="form-control" id="comp_age_group" name="comp_age_group">
+                                    <label for="comp_age_group" class="form-label">Age Group (Min and Max)*</label>
+                                    <input type="number" class="form-control" id="min_age" name="comp_age_group">
+                                    <input type="number" class="form-control" id="max_age" name="comp_age_group">
                                 </div>
                                 <div class="mb-3">
                                     <label for="stroke_style" class="form-label">Stroke Style*</label>

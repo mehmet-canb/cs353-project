@@ -58,14 +58,15 @@ def create_session():
             )
 
         elif session_type == "class_session":
-            age_group = request.form["age_group"]
+            min_age = request.form["min_age"]
+            max_age = request.form["max_age"]
             max_capacity = request.form["max_capacity"]
             class_level = request.form["class_level"]
             signup_date = request.form["signup_date"]
 
             cursor.execute(
                 """
-                INSERT INTO class_session (session_name, session_date, start_hour, end_hour, age_group,
+                INSERT INTO class_session (session_name, session_date, start_hour, end_hour, min_age, max_age,
                                             number_of_participants, max_capacity, class_level, signup_date)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
@@ -74,7 +75,8 @@ def create_session():
                     session_date,
                     start_hour,
                     end_hour,
-                    age_group,
+                    min_age,
+                    max_age,
                     0,
                     max_capacity,
                     class_level,
@@ -83,12 +85,11 @@ def create_session():
             )
 
         elif session_type == "race":
-            age_group = request.form["comp_age_group"]
             stroke_style = request.form["stroke_style"]
 
             cursor.execute(
                 """
-                INSERT INTO race (session_name, session_date, start_hour, end_hour, age_group, stroke_style)
+                INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style)
                 VALUES (%s, %s, %s, %s, %s, %s)
                 """,
                 (
@@ -96,7 +97,8 @@ def create_session():
                     session_date,
                     start_hour,
                     end_hour,
-                    age_group,
+                    request.form["min_age"],
+                    request.form["max_age"],
                     stroke_style,
                 ),
             )
@@ -335,7 +337,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     session_date = s.session_date,
                     start_hour = s.start_hour,
                     end_hour = s.end_hour,
-                    age_group = %s,
+                    min_age = %s,
+                    max_age = %s,
                     max_capacity = %s,
                     class_level = %s,
                     signup_date = %s
@@ -355,7 +358,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     session_date,
                     start_hour,
                     end_hour,
-                    request.form["age_group"],
+                    request.form["min_age"],
+                    request.form["max_age"],
                     request.form["max_capacity"],
                     request.form["class_level"],
                     request.form["signup_date"],
@@ -387,7 +391,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     session_date = s.session_date,
                     start_hour = s.start_hour,
                     end_hour = s.end_hour,
-                    age_group = %s,
+                    min_age = %s,
+                    max_age = %s,
                     stroke_style = %s
                 FROM swimming_update s
                 WHERE r.session_name = %s
@@ -405,7 +410,8 @@ def update_session(session_name, session_date, start_hour, end_hour):
                     session_date,
                     start_hour,
                     end_hour,
-                    request.form["comp_age_group"],
+                    request.form["min_age"],
+                    request.form["max_age"],
                     request.form["stroke_style"],
                     session_name,
                     session_date,
