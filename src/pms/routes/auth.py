@@ -59,7 +59,7 @@ def login():
         return redirect(url_for("login.login_page", error="Invalid email or password"))
 
 
-@bp.route("/logout", methods=["POST"])
+@bp.route("/logout", methods=["GET"])
 @login_required
 def logout():
     logout_user()
