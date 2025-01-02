@@ -10,7 +10,7 @@ bp = Blueprint("session", __name__, url_prefix="/session")
 @bp.route("/create", methods=["GET"])
 @coach_required
 def create_page():
-    return render_template("session/create.html")
+    return render_template("session/coach/create.html")
 
 
 @bp.route("/create", methods=["POST"])
@@ -199,7 +199,7 @@ def list_sessions():
     individual_sessions = cursor.fetchall()
 
     return render_template(
-        "session/list.html",
+        "session/coach/list.html",
         one_to_one=one_to_one_sessions,
         classes=class_sessions,
         races=race_sessions,
@@ -254,7 +254,7 @@ def update_page(session_name, session_date, start_hour, end_hour):
             break
 
     return render_template(
-        "session/update.html", session=session, session_type=session_type
+        "session/coach/update.html", session=session, session_type=session_type
     )
 
 
