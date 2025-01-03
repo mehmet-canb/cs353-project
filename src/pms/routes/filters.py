@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
+from flask_login import current_user, login_required
 
 from pms.db import get_cursor  # TODO: Implement database connection
-from flask_login import current_user, login_required
 
 bp = Blueprint("filters", __name__)
 
@@ -302,7 +302,10 @@ def session_info():
     )
     label_converter = {}
     l1 = {}
-    ignore_list = ["end_hour", "min_age", "max_age"]
+    ignore_list = [
+        "min_age",
+        "max_age",
+    ]  # Without any end_hour no session can be identified
     if (
         "min_age" in results.keys()
         and "max_age" in results.keys()
@@ -317,6 +320,7 @@ def session_info():
     results["price"] = "$" + str(results["price"])
     results["duration"] = str(results["duration"]) + " minutes"
     results["start_hour"] = results["start_hour"].strftime("%H:%M")
+    results["end_hour"] = results["end_hour"].strftime("%H:%M")
     for key, value in results.items():
         label_converter[key] = key.replace("_", " ").title()
     return render_template(

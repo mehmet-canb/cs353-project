@@ -19,6 +19,7 @@
                 {%for key, value in results.items():%}
                     <div class="col-md-3">
                         <p class="mb-1 text-secondary fw-bold">{{label_converter[key]}}</p>
+                        {{key}}
                         <p class="text-dark">{{value}}</p>
                     </div>
                 {% endfor %}
@@ -32,7 +33,11 @@
             </form>
             {% if canBeTaken %}
                 <!-- Do not forget to enter payment page url here -->
-                <form action="">
+                <form action="{{ url_for('balance.cart') }}" method="post" >
+                    <input type="hidden" name="session_name" value="{{results.session_name}}">
+                    <input type="hidden" name="session_date" value="{{results.session_date}}">
+                    <input type="hidden" name="start_hour" value="{{results.start_hour}}">
+                    <input type="hidden" name="end_hour" value="{{ results.end_hour }}">
                     <button type="submit" class="btn btn-primary">Book</button>
                 </form>
             {% else %}
