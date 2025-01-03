@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request
-
 from flask_login import current_user, login_required
 
 from pms.db import get_cursor
@@ -28,6 +27,63 @@ def profile():
 def sessions():
     user_email = current_user.id  # Dynamically get the logged-in user's email
     cur = get_cursor()
+
+    # # Retrieve attended sessions with additional details
+    # attended_query = """
+    #     SELECT ss.session_name, ss.session_date, ss.start_hour, ss.end_hour,
+    #            cs.class_level, cs.age_group,
+    #            pu.forename AS coach_forename, pu.surname AS coach_surname,
+    #            c.rating,
+    #            c.email AS coach_email
+    #     FROM swimming_session ss
+    #     JOIN swimmer_attend_session sas
+    #       ON ss.session_name = sas.session_name
+    #      AND ss.session_date = sas.session_date
+    #      AND ss.start_hour = sas.start_hour
+    #      AND ss.end_hour = sas.end_hour
+    #     LEFT JOIN class_session cs
+    #       ON ss.session_name = cs.session_name
+    #      AND ss.session_date = cs.session_date
+    #      AND ss.start_hour = cs.start_hour
+    #      AND ss.end_hour = cs.end_hour
+    #     LEFT JOIN coach c
+    #       ON ss.coach_email = c.email
+    #     LEFT JOIN pms_user pu
+    #       ON c.email = pu.email
+    #     WHERE sas.email = %s
+    #     ORDER BY ss.session_date DESC, ss.start_hour DESC;
+    # """
+    # cur.execute(attended_query, (user_email,))
+    # attended_sessions = cur.fetchall()
+
+    # Retrieve available sessions with additional details
+    # available_query = """
+    #     SELECT ss.session_name, ss.session_date, ss.start_hour, ss.end_hour,
+    #            cs.class_level, cs.age_group,
+    #            pu.forename AS coach_forename, pu.surname AS coach_surname,
+    #            c.rating,
+    #            c.email AS coach_email
+    #     FROM swimming_session ss
+    #     LEFT JOIN swimmer_attend_session sas
+    #       ON ss.session_name = sas.session_name
+    #      AND ss.session_date = sas.session_date
+    #      AND ss.start_hour = sas.start_hour
+    #      AND ss.end_hour = sas.end_hour
+    #      AND sas.email = %s
+    #     LEFT JOIN class_session cs
+    #       ON ss.session_name = cs.session_name
+    #      AND ss.session_date = cs.session_date
+    #      AND ss.start_hour = cs.start_hour
+    #      AND ss.end_hour = cs.end_hour
+    #     LEFT JOIN coach c
+    #       ON ss.coach_email = c.email
+    #     LEFT JOIN pms_user pu
+    #       ON c.email = pu.email
+    #     WHERE sas.email IS NULL
+    #     ORDER BY ss.session_date ASC, ss.start_hour ASC;
+    # """
+    # cur.execute(available_query, (user_email,))
+    # available_sessions = cur.fetchall()
 
     try:
         # **1. Past Sessions: Enrolled sessions that have already occurred**
@@ -84,7 +140,7 @@ def sessions():
               ON c.email = pu.email
             WHERE sas.email = %s
               AND (ss.session_date > CURRENT_DATE
-                   OR (ss.session_date = CURRENT_DATE AND ss.start_hour >= CURRENT_TIME))
+                OR (ss.session_date = CURRENT_DATE AND ss.start_hour >= CURRENT_TIME))
             ORDER BY ss.session_date ASC, ss.start_hour ASC;
         """
         cur.execute(upcoming_sessions_query, (user_email,))
@@ -115,7 +171,7 @@ def sessions():
               ON c.email = pu.email
             WHERE sas.email IS NULL
               AND (ss.session_date > CURRENT_DATE
-                   OR (ss.session_date = CURRENT_DATE AND ss.start_hour >= CURRENT_TIME))
+                OR (ss.session_date = CURRENT_DATE AND ss.start_hour >= CURRENT_TIME))
             ORDER BY ss.session_date ASC, ss.start_hour ASC;
         """
         cur.execute(available_sessions_query, (user_email,))
