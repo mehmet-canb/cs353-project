@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request
+from flask_login import current_user, login_required
 
 from pms.db import get_cursor  # TODO: Implement database connection
-from flask_login import current_user, login_required
 
 bp = Blueprint("filters", __name__)
 
@@ -14,7 +14,7 @@ def filter_sessions():
     cur = get_cursor()
     cur.execute("SELECT username FROM pms_user NATURAL JOIN coach", ())
     coach_results = cur.fetchall()
-    cur.execute("SELECT DISTINCT pool_city FROM pool")
+    cur.execute("SELECT pool_id, pool_city, pool_name FROM pool")
     location_results = cur.fetchall()
     if request.method == "POST":
         data = request.form
@@ -24,7 +24,7 @@ def filter_sessions():
             "Class": "class_session",
             "Race": "race",
         }
-        query_attributes = ["pool_city", "session_date", "start_hour", "end_hour"]
+        query_attributes = ["pool_id", "session_date", "start_hour", "end_hour"]
         secondary_attributes = [
             "class_type",
             "instructor",
@@ -90,7 +90,7 @@ def filter_sessions():
         else:
             query += ")"
         query_operators = {
-            "pool_city": "=",
+            "pool_id": "=",
             "session_date": "=",
             "start_hour": ">=",
             "end_hour": "<=",
@@ -172,155 +172,163 @@ def init_filter_params(
         user_class_params.append("max_age")
 
 
-@bp.route("/sessions", methods=["POST"])
+@bp.route("/view_session", methods=["POST"])
 @login_required
 def session_info():
-    results = ["a", "b", "c", "d"]
+    results = []
     cur = get_cursor()
-    if request.method == "POST":
-        data = request.form
-        reason = ""
+    data = request.form
+    reason = ""
 
-        existence_query = """SELECT *
-                    FROM swimmer_attend_session S
-                    WHERE S.email = %s AND
-                    S.session_date = %s AND
-                    (S.start_hour <= %s OR S.end_hour >= %s);"""
-        cur.execute(
-            existence_query,
-            (
-                current_user.id,
-                data["session_date"],
-                data["start_hour"],
-                data["end_hour"],
-            ),
-        )
-        isExists = cur.fetchone()
-        if isExists:
-            reason = "Course conflict"
-        cost_query = """ SELECT balance, price
-                    FROM pms_user P, swimming_session S
-                    WHERE P.email = %s AND
-                    S.session_name = %s AND
-                    S.session_date = %s AND
-                    S.start_hour = %s AND
-                    S.end_hour = %s;
-                    """
-        cur.execute(
-            cost_query,
-            (
-                current_user.id,
-                data["session_name"],
-                data["session_date"],
-                data["start_hour"],
-                data["end_hour"],
-            ),
-        )
-        cost_json = cur.fetchone()
-        balance = cost_json["balance"]
-        price = cost_json["price"]
-        if balance < price:
-            reason = "Balance not enough"
+    existence_query = """SELECT *
+                FROM swimmer_attend_session S
+                WHERE S.email = %s AND
+                S.session_date = %s AND
+                (S.start_hour <= %s OR S.end_hour >= %s);"""
+    cur.execute(
+        existence_query,
+        (
+            current_user.id,
+            data["session_date"],
+            data["start_hour"],
+            data["end_hour"],
+        ),
+    )
+    isExists = cur.fetchone()
+    if isExists:
+        reason = "Course conflict"
+    cost_query = """ SELECT balance, price
+                FROM pms_user P, swimming_session S
+                WHERE P.email = %s AND
+                S.session_name = %s AND
+                S.session_date = %s AND
+                S.start_hour = %s AND
+                S.end_hour = %s;
+                """
+    cur.execute(
+        cost_query,
+        (
+            current_user.id,
+            data["session_name"],
+            data["session_date"],
+            data["start_hour"],
+            data["end_hour"],
+        ),
+    )
+    cost_json = cur.fetchone()
+    balance = cost_json["balance"]
+    price = cost_json["price"]
+    if balance < price:
+        reason = "Balance not enough"
 
-        date_query = """SELECT * FROM swimming_session S
-                        WHERE S.session_name = %s AND
-                        S.session_date = %s AND S.start_hour = %s
-                        AND S.end_hour = %s AND
-                        S.session_date < CURRENT_DATE OR
-                        (S.session_date = CURRENT_DATE AND S.start_hour < CURRENT_TIME);
-        """
-        cur.execute(
-            date_query,
-            (
-                data["session_name"],
-                data["session_date"],
-                data["start_hour"],
-                data["end_hour"],
-            ),
-        )
-        date_result = cur.fetchone()
-        if date_result:
-            reason = "Session no longer available"
-
-        signup_date_query = """SELECT * FROM swimming_session S
-                        NATURAL JOIN class_session C
-                        WHERE S.session_name = %s AND
-                        S.session_date = %s AND S.start_hour = %s
-                        AND S.end_hour = %s AND
-                        C.signup_date < CURRENT_DATE;
-        """
-        cur.execute(
-            signup_date_query,
-            (
-                data["session_name"],
-                data["session_date"],
-                data["start_hour"],
-                data["end_hour"],
-            ),
-        )
-        signup_date_result = cur.fetchone()
-        if signup_date_result:
-            reason = "Signup deadline is passed"
-
-        class_type_dict = {
-            "Individual": "individual_session",
-            "One-to-One": "one_to_one_session",
-            "Class": "class_session",
-            "Race": "race",
-        }
-
-        query = """SELECT *
-                    FROM swimming_session S
-                    NATURAL JOIN {dict_entry}
+    date_query = """SELECT * FROM swimming_session S
                     WHERE S.session_name = %s AND
                     S.session_date = %s AND S.start_hour = %s
-                    AND S.end_hour = %s;""".format(
-            dict_entry=class_type_dict[data["class_type"]]
-        )
-        cur.execute(
-            query,
-            (
-                data["session_name"],
-                data["session_date"],
-                data["start_hour"],
-                data["end_hour"],
-            ),
-        )
-        results = cur.fetchone()
-        if (
-            results["max_capacity"]
-            and results["number_of_participants"]
-            and results["max_capacity"] == results["number_of_participants"]
-        ):
-            reason = "Class full"
+                    AND S.end_hour = %s AND
+                    S.session_date < CURRENT_DATE OR
+                    (S.session_date = CURRENT_DATE AND S.start_hour < CURRENT_TIME);
+    """
+    cur.execute(
+        date_query,
+        (
+            data["session_name"],
+            data["session_date"],
+            data["start_hour"],
+            data["end_hour"],
+        ),
+    )
+    date_result = cur.fetchone()
+    if date_result:
+        reason = "Session no longer available"
 
-        results["duration"] = (
-            (results["end_hour"].hour - results["start_hour"].hour) * 60
-            + results["end_hour"].minute
-            - results["start_hour"].minute
-        )
-        label_converter = {}
-        l1 = {}
-        ignore_list = ["end_hour"]
-        for key, value in results.items():
-            if value and key not in ignore_list:
-                l1[key] = value
-        results = l1
-        results["price"] = "$" + str(results["price"])
-        results["duration"] = str(results["duration"]) + " minutes"
-        for key, value in results.items():
-            label_converter[key] = key.replace("_", " ").title()
-        return render_template(
-            "filter/session.html",
-            results=results,
-            len=len(results),
-            label_converter=label_converter,
-            label_converter_len=len(label_converter),
-            reason=reason,
-            canBeTaken=(len(reason) == 0),
-        )
+    signup_date_query = """SELECT * FROM swimming_session S
+                    NATURAL JOIN class_session C
+                    WHERE S.session_name = %s AND
+                    S.session_date = %s AND S.start_hour = %s
+                    AND S.end_hour = %s AND
+                    C.signup_date < CURRENT_DATE;
+    """
+    cur.execute(
+        signup_date_query,
+        (
+            data["session_name"],
+            data["session_date"],
+            data["start_hour"],
+            data["end_hour"],
+        ),
+    )
+    signup_date_result = cur.fetchone()
+    if signup_date_result:
+        reason = "Signup deadline is passed"
+
+    class_type_dict = {
+        "Individual": "individual_session",
+        "One-to-One": "one_to_one_session",
+        "Class": "class_session",
+        "Race": "race",
+    }
+
+    query = """SELECT *
+                FROM swimming_session S
+                NATURAL JOIN {dict_entry}
+                WHERE S.session_name = %s AND
+                S.session_date = %s AND S.start_hour = %s
+                AND S.end_hour = %s;""".format(
+        dict_entry=class_type_dict[data["class_type"]]
+    )
+    cur.execute(
+        query,
+        (
+            data["session_name"],
+            data["session_date"],
+            data["start_hour"],
+            data["end_hour"],
+        ),
+    )
+    results = cur.fetchone()
+    if (
+        "max_capacity" in results.keys()
+        and "number_of_participants" in results.keys()
+        and results["max_capacity"]
+        and results["number_of_participants"]
+        and results["max_capacity"] == results["number_of_participants"]
+    ):
+        reason = "Class full"
+
+    results["duration"] = (
+        (results["end_hour"].hour - results["start_hour"].hour) * 60
+        + results["end_hour"].minute
+        - results["start_hour"].minute
+    )
+    label_converter = {}
+    l1 = {}
+    ignore_list = [
+        "min_age",
+        "max_age",
+    ]  # Without any end_hour no session can be identified
+    if (
+        "min_age" in results.keys()
+        and "max_age" in results.keys()
+        and results["min_age"]
+        and results["max_age"]
+    ):
+        results["age_group"] = str(results["min_age"]) + "-" + str(results["max_age"])
+    for key, value in results.items():
+        if value and key not in ignore_list:
+            l1[key] = value
+    results = l1
+    results["price"] = "$" + str(results["price"])
+    results["duration"] = str(results["duration"]) + " minutes"
+    results["start_hour"] = results["start_hour"].strftime("%H:%M")
+    results["end_hour"] = results["end_hour"].strftime("%H:%M")
+    for key, value in results.items():
+        label_converter[key] = key.replace("_", " ").title()
     return render_template(
         "filter/session.html",
         results=results,
         len=len(results),
+        label_converter=label_converter,
+        label_converter_len=len(label_converter),
+        reason=reason,
+        canBeTaken=(len(reason) == 0),
     )

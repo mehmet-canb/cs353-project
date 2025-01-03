@@ -12,12 +12,12 @@
             <div class="col-md-4">
                 <form action="{{ url_for('filters.filter_sessions') }}" method="post" class="p-4 bg-white shadow rounded">
                     <div class="mb-3">
-                        <label for="pool_city" class="form-label fw-bold">Location</label>
-                        <select id="pool_city" name="pool_city" class="form-select">
+                        <label for="pool_id" class="form-label fw-bold">Location</label>
+                        <select id="pool_id" name="pool_id" class="form-select">
                             <option value="">-- select an option --</option>
                             {% if location_results is defined %}
                                 {% for i in range(0, location_results_len) %}
-                                    <option value="{{ location_results[i].pool_city }}">{{ location_results[i].pool_city }}</option>
+                                    <option value="{{ location_results[i].pool_id }}">{{location_results[i].pool_name}} - {{ location_results[i].pool_city }} ({{location_results[i].pool_id}})</option>
                                 {% endfor %}
                             {% endif %}
                         </select>

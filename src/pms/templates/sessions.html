@@ -15,6 +15,28 @@
         .d-none {
             display: none;
         }
+
+        /* Optional: Style for Flash Messages */
+        .flash {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .flash-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .flash-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .flash-warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
     </style>
 </head>
 
@@ -26,49 +48,114 @@
         <h2 class="mb-4">My Sessions</h2>
 
         <!-- Flash Messages -->
-        <div id="flash-messages" class="mb-4"></div>
+        <div id="flash-messages" class="mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
 
         <!-- Toggle Buttons -->
-        <div class="btn-group mb-4" role="group">
-            <button type="button" class="btn btn-primary active" id="attended-btn">Attended Sessions</button>
+        <div class="btn-group mb-4" role="group" aria-label="Session Categories">
+            <button type="button" class="btn btn-primary active" id="past-btn">Past Sessions</button>
+            <button type="button" class="btn btn-outline-primary" id="upcoming-btn">Upcoming Sessions</button>
             <button type="button" class="btn btn-outline-primary" id="available-btn">Available Sessions</button>
         </div>
 
         <!-- Sessions Container -->
         <div id="sessions-container">
-            <!-- Attended Sessions -->
-            <div id="attended-sessions">
-                <h4>Attended Sessions</h4>
-                <div class="row" id="attended-sessions-list">
-                    {% for session in attended_sessions %}
+            <!-- Past Sessions -->
+            <div id="past-sessions">
+                <h4>Past Sessions</h4>
+                <div class="row" id="past-sessions-list">
+                    {% for session in past_sessions %}
                     <div class="col-md-6 session-card">
                         <div class="card h-100 shadow-sm">
                             <div class="card-body">
                                 <h5 class="card-title">{{ session.session_name }}</h5>
                                 <p class="card-text">
-                                    {% if session.session_date %} <strong>Date:</strong> {{ session.session_date }}<br> {% endif %}
-                                    {% if session.start_hour and session.end_hour %}<strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br> {% endif %}
-                                    {% if session.class_level %}<strong>Class Level:</strong> {{ session.class_level}}<br> {% endif %}
-                                    {% if session.age_group %}<strong>Age Group:</strong> {{session.age_group}}<br> {% endif %}
-                                    {% if session.coach_forename and session.coach_surname %}<strong>Coach:</strong> {{session.coach_forename}} {{session.coach_surname}}<br> {% endif %}
-                                    <strong>Coach Rating:</strong> {{session.rating or 'N/A'}}
+                                    {% if session.session_date %}
+                                        <strong>Date:</strong> {{ session.session_date.strftime('%Y-%m-%d') }}<br>
+                                    {% endif %}
+                                    {% if session.start_hour and session.end_hour %}
+                                        <strong>Time:</strong> {{ session.start_hour.strftime('%H:%M') }} - {{ session.end_hour.strftime('%H:%M') }}<br>
+                                    {% endif %}
+                                    {% if session.class_level %}
+                                        <strong>Class Level:</strong> {{ session.class_level }}<br>
+                                    {% endif %}
+                                    {% if session.age_group %}
+                                        <strong>Age Group:</strong> {{ session.age_group }}<br>
+                                    {% endif %}
+                                    {% if session.coach_forename and session.coach_surname %}
+                                        <strong>Coach:</strong> {{ session.coach_forename }} {{ session.coach_surname }}<br>
+                                    {% endif %}
+                                    <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
                                 </p>
-                                <button class="btn btn-danger disenroll-session-btn"
-                                    data-name="{{ session.session_name }}" data-date="{{ session.session_date }}"
-                                    data-start="{{ session.start_hour }}" data-end="{{ session.end_hour }}"
-                                    data-coach-email="{{ session.coach_email }}">
-                                    Disenroll
-                                </button>
-                                <button class="btn btn-warning rate-coach-btn" data-name="{{ session.session_name }}"
-                                    data-date="{{ session.session_date }}" data-start="{{ session.start_hour }}"
-                                    data-end="{{ session.end_hour }}" data-coach-email="{{ session.coach_email }}">
-                                    Rate Coach
-                                </button>
+                                {% if not session.rating_id %}
+                                    <!-- Rate Coach Button -->
+                                    <button class="btn btn-warning rate-coach-btn" data-name="{{ session.session_name }}"
+                                        data-date="{{ session.session_date }}"
+                                        data-start="{{ session.start_hour }}"
+                                        data-end="{{ session.end_hour }}"
+                                        data-coach-email="{{ session.coach_email }}">
+                                        Rate Coach
+                                    </button>
+                                {% else %}
+                                    <span class="badge bg-success">Rated</span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
                     {% else %}
-                    <p>No attended sessions found.</p>
+                    <p>No past sessions found.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Upcoming Sessions -->
+            <div id="upcoming-sessions" class="d-none">
+                <h4>Upcoming Sessions</h4>
+                <div class="row" id="upcoming-sessions-list">
+                    {% for session in upcoming_sessions %}
+                    <div class="col-md-6 session-card">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ session.session_name }}</h5>
+                                <p class="card-text">
+                                    {% if session.session_date %}
+                                        <strong>Date:</strong> {{ session.session_date.strftime('%Y-%m-%d') }}<br>
+                                    {% endif %}
+                                    {% if session.start_hour and session.end_hour %}
+                                        <strong>Time:</strong> {{ session.start_hour.strftime('%H:%M') }} - {{ session.end_hour.strftime('%H:%M') }}<br>
+                                    {% endif %}
+                                    {% if session.class_level %}
+                                        <strong>Class Level:</strong> {{ session.class_level }}<br>
+                                    {% endif %}
+                                    {% if session.age_group %}
+                                        <strong>Age Group:</strong> {{ session.age_group }}<br>
+                                    {% endif %}
+                                    {% if session.coach_forename and session.coach_surname %}
+                                        <strong>Coach:</strong> {{ session.coach_forename }} {{ session.coach_surname }}<br>
+                                    {% endif %}
+                                    <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
+                                </p>
+                                <div class="d-flex justify-content-between">
+                                    <!-- Disenroll Button -->
+                                    <button class="btn btn-danger disenroll-session-btn"
+                                        data-name="{{ session.session_name }}" data-date="{{ session.session_date }}"
+                                        data-start="{{ session.start_hour }}" data-end="{{ session.end_hour }}"
+                                        data-coach-email="{{ session.coach_email }}">
+                                        Disenroll
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>No upcoming sessions found.</p>
                     {% endfor %}
                 </div>
             </div>
@@ -83,17 +170,28 @@
                             <div class="card-body">
                                 <h5 class="card-title">{{ session.session_name }}</h5>
                                 <p class="card-text">
-                                    {% if session.session_date %} <strong>Date:</strong> {{ session.session_date }}<br> {% endif %}
-                                    {% if session.start_hour and session.end_hour %}<strong>Time:</strong> {{ session.start_hour }} - {{ session.end_hour }}<br> {% endif %}
-                                    {% if session.class_level %}<strong>Class Level:</strong> {{ session.class_level}}<br> {% endif %}
-                                    {% if session.age_group %}<strong>Age Group:</strong> {{session.age_group}}<br> {% endif %}
-                                    {% if session.coach_forename and session.coach_surname %}<strong>Coach:</strong> {{session.coach_forename}} {{session.coach_surname}}<br> {% endif %}
-                                    <strong>Coach Rating:</strong> {{session.rating or 'N/A'}}
+                                    {% if session.session_date %}
+                                        <strong>Date:</strong> {{ session.session_date.strftime('%Y-%m-%d') }}<br>
+                                    {% endif %}
+                                    {% if session.start_hour and session.end_hour %}
+                                        <strong>Time:</strong> {{ session.start_hour.strftime('%H:%M') }} - {{ session.end_hour.strftime('%H:%M') }}<br>
+                                    {% endif %}
+                                    {% if session.class_level %}
+                                        <strong>Class Level:</strong> {{ session.class_level }}<br>
+                                    {% endif %}
+                                    {% if session.age_group %}
+                                        <strong>Age Group:</strong> {{ session.age_group }}<br>
+                                    {% endif %}
+                                    {% if session.coach_forename and session.coach_surname %}
+                                        <strong>Coach:</strong> {{ session.coach_forename }} {{ session.coach_surname }}<br>
+                                    {% endif %}
+                                    <strong>Coach Rating:</strong> {{ session.rating if session.rating else 'N/A' }}
                                 </p>
+                                <!-- Enroll Button -->
                                 <button class="btn btn-success join-session-btn" data-name="{{ session.session_name }}"
                                     data-date="{{ session.session_date }}" data-start="{{ session.start_hour }}"
                                     data-end="{{ session.end_hour }}" data-coach-email="{{ session.coach_email }}">
-                                    Join
+                                    Enroll
                                 </button>
                             </div>
                         </div>
@@ -110,36 +208,36 @@
     <div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 id="ratingModalLabel" class="modal-title">Rate Coach</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="rating-form">
+                <form id="rating-form">
+                    <div class="modal-header">
+                        <h5 id="ratingModalLabel" class="modal-title">Rate Coach</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
                         <div class="mb-3">
                             <label for="rating" class="form-label">Select Rating:</label>
                             <select class="form-select" id="rating" name="rating" required>
                                 <option value="" selected disabled>Select a rating</option>
-                                <option value="1">1 - Very Poor</option>
-                                <option value="2">2 - Poor</option>
-                                <option value="3">3 - Fair</option>
-                                <option value="4">4 - Good</option>
-                                <option value="5">5 - Excellent</option>
+                                {% for i in range(1,6) %}
+                                    <option value="{{ i }}">{{ i }}</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="comment" class="form-label">Comment (max 255 characters):</label>
-                            <textarea class="form-control" id="comment" name="comment">
-                            </textarea>
+                            <textarea class="form-control" id="comment" name="comment" maxlength="255"></textarea>
                         </div>
                         <input type="hidden" id="rate-session-name" name="session_name">
                         <input type="hidden" id="rate-session-date" name="session_date">
                         <input type="hidden" id="rate-start-hour" name="start_hour">
                         <input type="hidden" id="rate-end-hour" name="end_hour">
                         <input type="hidden" id="rate-coach-email" name="coach_email">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Submit Rating</button>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -149,43 +247,64 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const flashMessages = document.getElementById('flash-messages');
-            const attendedBtn = document.getElementById('attended-btn');
+            const pastBtn = document.getElementById('past-btn');
+            const upcomingBtn = document.getElementById('upcoming-btn');
             const availableBtn = document.getElementById('available-btn');
-            const attendedSessions = document.getElementById('attended-sessions');
+            const pastSessions = document.getElementById('past-sessions');
+            const upcomingSessions = document.getElementById('upcoming-sessions');
             const availableSessions = document.getElementById('available-sessions');
             const ratingModalElement = document.getElementById('ratingModal');
             const ratingModal = new bootstrap.Modal(ratingModalElement);
             const ratingForm = document.getElementById('rating-form');
 
             // Toggle sessions
-            attendedBtn.addEventListener('click', () => {
-                attendedBtn.classList.add('btn-primary', 'active');
-                attendedBtn.classList.remove('btn-outline-primary');
+            pastBtn.addEventListener('click', () => {
+                pastBtn.classList.add('btn-primary', 'active');
+                pastBtn.classList.remove('btn-outline-primary');
+                upcomingBtn.classList.remove('btn-primary', 'active');
+                upcomingBtn.classList.add('btn-outline-primary');
                 availableBtn.classList.remove('btn-primary', 'active');
                 availableBtn.classList.add('btn-outline-primary');
-                attendedSessions.classList.remove('d-none');
+                pastSessions.classList.remove('d-none');
+                upcomingSessions.classList.add('d-none');
+                availableSessions.classList.add('d-none');
+            });
+
+            upcomingBtn.addEventListener('click', () => {
+                upcomingBtn.classList.add('btn-primary', 'active');
+                upcomingBtn.classList.remove('btn-outline-primary');
+                pastBtn.classList.remove('btn-primary', 'active');
+                pastBtn.classList.add('btn-outline-primary');
+                availableBtn.classList.remove('btn-primary', 'active');
+                availableBtn.classList.add('btn-outline-primary');
+                upcomingSessions.classList.remove('d-none');
+                pastSessions.classList.add('d-none');
                 availableSessions.classList.add('d-none');
             });
 
             availableBtn.addEventListener('click', () => {
                 availableBtn.classList.add('btn-primary', 'active');
                 availableBtn.classList.remove('btn-outline-primary');
-                attendedBtn.classList.remove('btn-primary', 'active');
-                attendedBtn.classList.add('btn-outline-primary');
+                pastBtn.classList.remove('btn-primary', 'active');
+                pastBtn.classList.add('btn-outline-primary');
+                upcomingBtn.classList.remove('btn-primary', 'active');
+                upcomingBtn.classList.add('btn-outline-primary');
                 availableSessions.classList.remove('d-none');
-                attendedSessions.classList.add('d-none');
+                pastSessions.classList.add('d-none');
+                upcomingSessions.classList.add('d-none');
             });
 
-            // Join session logic
+            // Enroll session logic
             document.querySelectorAll('.join-session-btn').forEach(button => {
                 button.addEventListener('click', async function () {
                     const sessionName = this.dataset.name;
                     const sessionDate = this.dataset.date;
                     const startHour = this.dataset.start;
                     const endHour = this.dataset.end;
+                    const coachEmail = this.dataset.coachEmail;
 
                     try {
-                        const response = await fetch('/sessions/join', {
+                        const response = await fetch('/balance/cart', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -197,12 +316,14 @@
                         });
 
                         const message = await response.text();
-                        flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
                         if (response.ok) {
-                            setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
+                            document.body.innerHTML = message;
+                        } else {
+                            flashMessages.innerHTML = `<div class="flash flash-danger">${message}</div>`;
                         }
                     } catch (error) {
-                        flashMessages.innerHTML = `<div class="alert alert-danger">Error joining session.</div>`;
+                        flashMessages.innerHTML = `<div class="flash flash-danger">Error enrolling in session.</div>`;
+                        console.error('Error:', error);
                     }
                 });
             });
@@ -214,6 +335,11 @@
                     const sessionDate = this.dataset.date;
                     const startHour = this.dataset.start;
                     const endHour = this.dataset.end;
+                    const coachEmail = this.dataset.coachEmail;
+
+                    if (!confirm('Are you sure you want to disenroll from this session?')) {
+                        return;
+                    }
 
                     try {
                         const response = await fetch('/sessions/disenroll', {
@@ -228,12 +354,15 @@
                         });
 
                         const message = await response.text();
-                        flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
                         if (response.ok) {
+                            flashMessages.innerHTML = `<div class="flash flash-success">${message}</div>`;
                             setTimeout(() => location.reload(), 2000); // Refresh the page
+                        } else {
+                            flashMessages.innerHTML = `<div class="flash flash-danger">${message}</div>`;
                         }
                     } catch (error) {
-                        flashMessages.innerHTML = `<div class="alert alert-danger">Error disenrolling from session.</div>`;
+                        flashMessages.innerHTML = `<div class="flash flash-danger">Error disenrolling from session.</div>`;
+                        console.error('Error:', error);
                     }
                 });
             });
@@ -246,7 +375,8 @@
                     const startHour = this.dataset.start;
                     const endHour = this.dataset.end;
                     const coachEmail = this.dataset.coachEmail;
-                    try{
+
+                    try {
                         const response = await fetch('/sessions/get-rate', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -258,24 +388,25 @@
                             })
                         });
 
-                        const message = await response.json();
-                        console.log(message.rating);
-                        document.getElementById('rating').value = message.rating;
-                        document.getElementById('comment').value = message.comment;
-                    }
+                        const data = await response.json();
+                        console.log(data.rating);
 
-                    catch(error){
-                        console.error("rate-coach-button click listener error")
-                    }
-                    // Set hidden form fields
-                    document.getElementById('rate-session-name').value = sessionName;
-                    document.getElementById('rate-session-date').value = sessionDate;
-                    document.getElementById('rate-start-hour').value = startHour;
-                    document.getElementById('rate-end-hour').value = endHour;
-                    document.getElementById('rate-coach-email').value = coachEmail;
+                        // Populate the modal fields
+                        document.getElementById('rating').value = data.rating;
+                        document.getElementById('comment').value = data.comment;
 
-                    // Show the modal
-                    ratingModal.show();
+                        document.getElementById('rate-session-name').value = sessionName;
+                        document.getElementById('rate-session-date').value = sessionDate;
+                        document.getElementById('rate-start-hour').value = startHour;
+                        document.getElementById('rate-end-hour').value = endHour;
+                        document.getElementById('rate-coach-email').value = coachEmail;
+
+                        // Show the modal
+                        ratingModal.show();
+                    } catch (error) {
+                        flashMessages.innerHTML = `<div class="flash flash-danger">Error fetching rating data.</div>`;
+                        console.error("Rate coach button error:", error);
+                    }
                 });
             });
 
@@ -289,11 +420,15 @@
                 const endHour = document.getElementById('rate-end-hour').value;
                 const coachEmail = document.getElementById('rate-coach-email').value;
                 const rating = parseInt(document.getElementById('rating').value);
-                const comment = document.getElementById('comment').value;
-                console.log(comment)
+                const comment = document.getElementById('comment').value.trim();
 
                 if (!rating || rating < 1 || rating > 5) {
-                    flashMessages.innerHTML = `<div class="alert alert-warning">Please select a valid rating between 1 and 5.</div>`;
+                    flashMessages.innerHTML = `<div class="flash flash-warning">Please select a valid rating between 1 and 5.</div>`;
+                    return;
+                }
+
+                if (comment.length > 255) {
+                    flashMessages.innerHTML = `<div class="flash flash-warning">Comment must be smaller than 256 characters.</div>`;
                     return;
                 }
 
@@ -312,13 +447,16 @@
                     });
 
                     const message = await response.text();
-                    flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
                     if (response.ok) {
+                        flashMessages.innerHTML = `<div class="flash flash-success">${message}</div>`;
                         setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
+                    } else {
+                        flashMessages.innerHTML = `<div class="flash flash-danger">${message}</div>`;
                     }
                     ratingModal.hide();
                 } catch (error) {
-                    flashMessages.innerHTML = `<div class="alert alert-danger">Error rating coach.</div>`;
+                    flashMessages.innerHTML = `<div class="flash flash-danger">Error rating coach.</div>`;
+                    console.error('Error:', error);
                 }
             });
         });

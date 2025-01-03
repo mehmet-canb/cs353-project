@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.html" %}
+<body class="bg-light">
+    <!-- Navigation -->
+    {% include "nav.html" %}
+
+    <!-- Balance Section -->
+    <div class="container my-5">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5">
+                <h1 class="display-4 fw-bold text-primary mb-3">Your Balance</h1>
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <h2 class="text-center text-primary">
+                            ${{ "%.2f"|format(balance) }}
+                        </h2>
+                    </div>
+                </div>
+                <p class="lead text-muted mb-4">Add funds to your account to book sessions and participate in activities.</p>
+                <form method="POST" action="{{ url_for('balance.add_balance') }}" class="mb-3">
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount to Add ($)</label>
+                        <input type="number" class="form-control" id="amount" name="amount" min="1" step="0.01" required>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">Add Balance</button>
+                    </div>
+                </form>
+                {% if swimming_session %}
+                <form method="POST" action="{{ url_for('balance.buy') }}">
+                    <input type="hidden" name="session_name" value="{{ swimming_session.session_name }}">
+                    <input type="hidden" name="session_date" value="{{ swimming_session.session_date }}">
+                    <input type="hidden" name="start_hour" value="{{ swimming_session.start_hour }}">
+                    <input type="hidden" name="end_hour" value="{{ swimming_session.end_hour }}">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg"
+                                {% if balance < swimming_session.price %}disabled{% endif %}>
+                            Buy
+                        </button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center text-lg-end">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <i class="bi bi-cart text-primary display-1 mb-3"></i>
+                        <h3 class="card-title mb-4">Your Cart</h3>
+                        {% if swimming_session %}
+                            <div class="list-group mb-4">
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ swimming_session.session_name }}</h6>
+                                        <small class="text-muted">{{ swimming_session.session_date }}</small>
+                                        <!-- <small class="text-muted">{{ swimming_session.session_date.strftime('%Y-%m-%d') }}</small> -->
+                                    </div>
+                                    <p class="mb-1">Time: {{ swimming_session.start_hour }} - {{ swimming_session.end_hour }}</p>
+                                    <p class="mb-1">Price: ${{ "%.2f"|format(swimming_session.price) }}</p>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">Your cart is empty</p>
+                        {% endif %}
+
+                        <!-- Horizontal Splitter -->
+                        <hr class="my-4">
+
+                        <i class="bi bi-wallet2 text-primary display-1 mb-3"></i>
+                        <h3 class="card-title mb-4">Transaction History</h3>
+                        {% if transactions %}
+                            <div class="list-group">
+                                {% for transaction in transactions %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between align-items-center">
+                                        <h6 class="mb-1">{{ transaction.session_name }}</h6>
+                                        <small class="text-muted">{{ transaction.session_date }}</small>
+                                        <!-- <small class="text-muted">{{ transaction.session_date.strftime('%Y-%m-%d') }}</small> -->
+                                    </div>
+                                    <p class="mb-1">Time: {{ transaction.start_hour }} - {{ transaction.end_hour }}</p>
+                                    <p class="mb-1">Price: ${{ "%.2f"|format(transaction.price) }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No transaction history available</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    {% if error %}
+        <div class="container">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Footer -->
+    {% include "footer.html" %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

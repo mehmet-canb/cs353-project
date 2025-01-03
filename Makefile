@@ -33,3 +33,9 @@ docker-down:
 
 docker-clean:
 	docker compose down --volumes --remove-orphans
+
+restart:
+	docker compose down
+	docker compose down --volumes --remove-orphans
+	docker compose up -d db
+	gunicorn -w 4 -b 0.0.0.0:8000 "pms:create_app()"
