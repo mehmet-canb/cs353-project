@@ -1,30 +1,89 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url_for('main.index') }}">
-            <i class="bi bi-water me-2"></i>
-            Pool Management System
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i> Home</a> <!-- TODO: Add link to home page -->
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="bi bi-calendar3"></i> Schedule</a> <!-- TODO: Add link to schedule page -->
-                </li>
-                <li class="nav-item">
-                    {% if current_user.is_authenticated %}
-                        <form action="{{ url_for('auth.logout') }}" method="post">
-                            <button type="submit" class="btn btn-link nav-link"><i class="bi bi-box-arrow-right"></i> Logout</button>
-                        </form>
-                    {% else %}
-                        <a class="nav-link" href="{{ url_for('auth.login_page') }}"><i class="bi bi-person"></i> Login</a>
-                    {% endif %}
-                </li>
-            </ul>
-        </div>
-    </div>
+	<div class="container">
+		<a class="navbar-brand" href="{{ url_for('main.index') }}">
+			<i class="bi bi-water me-2"></i>
+			Pool Management System
+		</a>
+		<button
+			class="navbar-toggler"
+			type="button"
+			data-bs-toggle="collapse"
+			data-bs-target="#navbarNav"
+		>
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarNav">
+			<ul class="navbar-nav ms-auto">
+				<!-- General links -->
+				<li class="nav-item">
+					<a class="nav-link active" href="{{ url_for('main.index') }}">
+						<i class="bi bi-house-door"></i> Home
+					</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#"> <i class="bi bi-calendar3"></i> Schedule </a>
+					<!-- TODO: Add link to schedule page -->
+				</li>
+
+				<!-- Admin-specific links -->
+				{% if current_user.is_authenticated and current_user.is_admin %}
+				<li class="nav-item dropdown">
+					<a
+						class="nav-link dropdown-toggle"
+						href="#"
+						id="adminDropdown"
+						role="button"
+						data-bs-toggle="dropdown"
+						aria-expanded="false"
+					>
+						<i class="bi bi-gear"></i> Admin
+					</a>
+					<ul class="dropdown-menu" aria-labelledby="adminDropdown">
+						<li>
+							<a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+								<i class="bi bi-speedometer2"></i> Dashboard
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="{{ url_for('admin.list_users') }}">
+								<i class="bi bi-people"></i> Users
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="{{ url_for('admin.list_sessions') }}">
+								<i class="bi bi-calendar"></i> Sessions
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="{{ url_for('admin.manage_benefits') }}">
+								<i class="bi bi-gift"></i> Benefits
+							</a>
+						</li>
+						<li>
+							<a class="dropdown-item" href="{{ url_for('admin.reports') }}">
+								<i class="bi bi-bar-chart"></i> Reports
+								<!-- New Menu Item -->
+							</a>
+						</li>
+					</ul>
+				</li>
+				{% endif %}
+
+				<!-- Authentication links -->
+				<li class="nav-item">
+					{% if current_user.is_authenticated %}
+					<form action="{{ url_for('auth.logout') }}" method="post">
+						<button type="submit" class="btn btn-link nav-link">
+							<i class="bi bi-box-arrow-right"></i> Logout
+						</button>
+					</form>
+					{% else %}
+					<a class="nav-link" href="{{ url_for('auth.login_page') }}">
+						<i class="bi bi-person"></i> Login
+					</a>
+					{% endif %}
+				</li>
+			</ul>
+		</div>
+	</div>
 </nav>

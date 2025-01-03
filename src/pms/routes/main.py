@@ -1,9 +1,10 @@
-from flask import Blueprint, redirect, render_template, url_for, flash, request, jsonify
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-import json
-from pms import get_cursor, get_db
+
+from pms.db import get_cursor
 
 bp = Blueprint("main", __name__)
+
 
 @bp.route("/")
 def index():
@@ -98,7 +99,7 @@ def sessions():
     return render_template(
         "sessions.html",
         attended_sessions=attended_sessions,
-        available_sessions=available_sessions
+        available_sessions=available_sessions,
     )
 
 
@@ -107,7 +108,6 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
     Handles the logic for a user joining a session.
     """
     cur = get_cursor()
-    db = get_db()
 
     try:
         # Check if the session exists and retrieve capacity
@@ -139,10 +139,13 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
 
         # Insert into swimmer_attend_session
         insert_query = """
-            INSERT INTO swimmer_attend_session (email, session_name, session_date, start_hour, end_hour)
+            INSERT INTO swimmer_attend_session (email, session_name, session_date,
+                                                start_hour, end_hour)
             VALUES (%s, %s, %s, %s, %s);
         """
-        cur.execute(insert_query, (user_email, session_name, session_date, start_hour, end_hour))
+        cur.execute(
+            insert_query, (user_email, session_name, session_date, start_hour, end_hour)
+        )
 
         # Update number_of_participants in class_session
         update_query = """
@@ -187,7 +190,9 @@ def join_session():
         return "Invalid session data.", 400
 
     user_email = current_user.id  # Dynamically get the logged-in user's email
-    result, status_code = join_session_logic(session_name, session_date, start_hour, end_hour, user_email)
+    result, status_code = join_session_logic(
+        session_name, session_date, start_hour, end_hour, user_email
+    )
     return result, status_code
 
 
@@ -205,7 +210,6 @@ def disenroll_session():
         return "Invalid session data.", 400
 
     cur = get_cursor()
-    db = get_db()
 
     try:
         # Start transaction
@@ -217,7 +221,9 @@ def disenroll_session():
             WHERE email = %s AND session_name = %s AND session_date = %s
               AND start_hour = %s AND end_hour = %s;
         """
-        cur.execute(check_query, (user_email, session_name, session_date, start_hour, end_hour))
+        cur.execute(
+            check_query, (user_email, session_name, session_date, start_hour, end_hour)
+        )
         if not cur.fetchone():
             return "You are not enrolled in this session.", 404
 
@@ -227,7 +233,9 @@ def disenroll_session():
             WHERE email = %s AND session_name = %s AND session_date = %s
               AND start_hour = %s AND end_hour = %s;
         """
-        cur.execute(delete_query, (user_email, session_name, session_date, start_hour, end_hour))
+        cur.execute(
+            delete_query, (user_email, session_name, session_date, start_hour, end_hour)
+        )
 
         # Decrement number_of_participants in class_session
         update_query = """
@@ -274,7 +282,6 @@ def rate_coach():
         return "Rating must be an integer between 1 and 5.", 400
 
     cur = get_cursor()
-    db = get_db()
 
     try:
         # Start transaction
@@ -303,7 +310,10 @@ def rate_coach():
             WHERE email = %s AND session_name = %s AND session_date = %s
               AND start_hour = %s AND end_hour = %s;
         """
-        cur.execute(check_enrollment_query, (user_email, session_name, session_date, start_hour, end_hour))
+        cur.execute(
+            check_enrollment_query,
+            (user_email, session_name, session_date, start_hour, end_hour),
+        )
         enrollment = cur.fetchone()
 
         if not enrollment:
@@ -318,7 +328,10 @@ def rate_coach():
               AND session_name = %s AND session_date = %s
               AND start_hour = %s AND end_hour = %s;
         """
-        cur.execute(check_rating_query, (user_email, coach_email, session_name, session_date, start_hour, end_hour))
+        cur.execute(
+            check_rating_query,
+            (user_email, coach_email, session_name, session_date, start_hour, end_hour),
+        )
         existing_rating = cur.fetchone()
 
         if existing_rating:
@@ -330,15 +343,38 @@ def rate_coach():
                   AND session_name = %s AND session_date = %s
                   AND start_hour = %s AND end_hour = %s;
             """
-            cur.execute(update_rating_query, (rating, user_email, coach_email, session_name, session_date, start_hour, end_hour))
+            cur.execute(
+                update_rating_query,
+                (
+                    rating,
+                    user_email,
+                    coach_email,
+                    session_name,
+                    session_date,
+                    start_hour,
+                    end_hour,
+                ),
+            )
             message = "Rating updated!"
         else:
             # Insert the new rating
             insert_rating_query = """
-                INSERT INTO coach_rating (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour, rating)
+                INSERT INTO coach_rating (coach_email, swimmer_email, session_name,
+                                        session_date, start_hour, end_hour, rating)
                 VALUES (%s, %s, %s, %s, %s, %s, %s);
             """
-            cur.execute(insert_rating_query, (coach_email, user_email, session_name, session_date, start_hour, end_hour, rating))
+            cur.execute(
+                insert_rating_query,
+                (
+                    coach_email,
+                    user_email,
+                    session_name,
+                    session_date,
+                    start_hour,
+                    end_hour,
+                    rating,
+                ),
+            )
             message = "Successfully rated the coach."
 
         # Commit transaction (trigger will handle updating the coach's average rating)

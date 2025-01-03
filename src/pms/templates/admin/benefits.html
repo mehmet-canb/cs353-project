@@ -1,0 +1,82 @@
+<!-- admin/benefits.html -->
+<!DOCTYPE html>
+<html lang="en">
+	{% include "head.html" %}
+	<body class="bg-light">
+		<!-- Navigation -->
+		{% include "nav.html" %}
+
+		<div class="container mt-5">
+			<h1>Manage Benefits</h1>
+			<form method="POST" action="{{ url_for('admin.manage_benefits') }}">
+				<div class="mb-3">
+					<label for="email" class="form-label">Swimmer Email</label>
+					<input type="email" class="form-control" id="email" name="email" required />
+				</div>
+				<div class="mb-3">
+					<label for="type" class="form-label">Benefit Type</label>
+					<select id="type" name="type" class="form-select">
+						<option value="free_session">Free Session</option>
+						<option value="free_membership">Free Membership</option>
+					</select>
+				</div>
+				<diav class="mb-3">
+					<label for="start_date" class="form-label">Start Date</label>
+					<input type="date" class="form-control" id="start_date" name="start_date" required />
+				</div>
+				<div class="mb-3">
+					<label for="end_date" class="form-label">End Date</label>
+					<input type="date" class="form-control" id="end_date" name="end_date" required />
+				</div>
+				<div class="mb-3" id="session-count" style="display: none">
+					<label for="number_of_sessions" class="form-label">Number of Sessions</label>
+					<input
+						type="number"
+						class="form-control"
+						id="number_of_sessions"
+						name="number_of_sessions"
+						min="1"
+					/>
+				</div>
+				<button type="submit" class="btn btn-primary">Assign Benefit</button>
+			</form>
+
+			<h2 class="mt-5">Existing Benefits</h2>
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Swimmer Email</th>
+						<th>Start Date</th>
+						<th>End Date</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for benefit in benefits %}
+					<tr>
+						<td>{{ benefit.swimmer_email }}</td>
+						<td>{{ benefit.start_date }}</td>
+						<td>{{ benefit.end_date }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		</div>
+
+		<!-- Footer -->
+		{% include "footer.html" %}
+
+		<script>
+			// Toggle session count input based on selected benefit type
+			const typeSelect = document.getElementById("type");
+			const sessionCount = document.getElementById("session-count");
+
+			typeSelect.addEventListener("change", () => {
+				if (typeSelect.value === "free_session") {
+					sessionCount.style.display = "block";
+				} else {
+					sessionCount.style.display = "none";
+				}
+			});
+		</script>
+	</body>
+</html>

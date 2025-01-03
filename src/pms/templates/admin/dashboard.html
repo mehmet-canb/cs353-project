@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+	{% include "head.html" %}
+
+	<body class="bg-light">
+		{% include "nav.html" %}
+
+		<div class="container my-5">
+			<h1>Admin Dashboard</h1>
+
+			{% if error %}
+			<div class="alert alert-danger">{{ error }}</div>
+			{% endif %}
+
+			<ul class="nav nav-tabs" role="tablist">
+				<li class="nav-item">
+					<a class="nav-link active" data-bs-toggle="tab" href="#users">Users</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" data-bs-toggle="tab" href="#sessions">Sessions</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" data-bs-toggle="tab" href="#benefits">Benefits</a>
+				</li>
+			</ul>
+
+			<div class="tab-content mt-4">
+				<!-- Users Tab -->
+				<div id="users" class="tab-pane fade show active" role="tabpanel">
+					<h3>Users</h3>
+					{% if users %}
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th>Email</th>
+								<th>Username</th>
+								<th>Phone</th>
+								<th>Role</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for user in users[:15] %}
+							<tr>
+								<td>{{ user.email }}</td>
+								<td>{{ user.username }}</td>
+								<td>{{ user.phone_no }}</td>
+								<td>
+									{% if user.is_admin %} Admin {% elif user.is_coach %} Coach {% else %} Member {%
+									endif %}
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					<a href="{{ url_for('admin.list_users') }}" class="btn btn-primary">See All Users</a>
+					{% else %}
+					<p class="text-muted">No users found.</p>
+					{% endif %}
+				</div>
+
+				<!-- Sessions Tab -->
+				<div id="sessions" class="tab-pane fade" role="tabpanel">
+					<h3>Sessions</h3>
+					{% if sessions %}
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Date</th>
+								<th>Start</th>
+								<th>End</th>
+								<th>Coach</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for session in sessions[:15] %}
+							<tr>
+								<td>{{ session.session_name }}</td>
+								<td>{{ session.session_date }}</td>
+								<td>{{ session.start_hour }}</td>
+								<td>{{ session.end_hour }}</td>
+								<td>{{ session.coach_email }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					<a href="{{ url_for('admin.list_sessions') }}" class="btn btn-primary"
+						>See All Sessions</a
+					>
+					{% else %}
+					<p class="text-muted">No sessions found.</p>
+					{% endif %}
+				</div>
+
+				<!-- Benefits Tab -->
+				<div id="benefits" class="tab-pane fade" role="tabpanel">
+					<h3>Benefits</h3>
+					{% if benefits %}
+					<table class="table table-striped">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Description</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for benefit in benefits[:15] %}
+							<tr>
+								<td>{{ benefit.id }}</td>
+								<td>{{ benefit.description }}</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+					<a href="{{ url_for('admin.list_benefits') }}" class="btn btn-primary"
+						>See All Benefits</a
+					>
+					{% else %}
+					<p class="text-muted">No benefits found.</p>
+					{% endif %}
+				</div>
+			</div>
+		</div>
+
+		{% include "footer.html" %}
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+	</body>
+</html>

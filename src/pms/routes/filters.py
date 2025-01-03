@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request
 
-from pms import get_cursor  # TODO: Implement database connection
+from pms.db import get_cursor  # TODO: Implement database connection
 
 bp = Blueprint("filters", __name__)
 

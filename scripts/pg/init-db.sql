@@ -17,20 +17,20 @@ CREATE TABLE swimmer (
 	email VARCHAR(255) PRIMARY KEY,
   	number_of_sessions_attended INT DEFAULT 0,
   	member_of_team VARCHAR(512),
-  	FOREIGN KEY (email) REFERENCES pms_user,
+  	FOREIGN KEY (email) REFERENCES pms_user ON DELETE CASCADE,
   	FOREIGN KEY (member_of_team) REFERENCES team
 );
 
 CREATE TABLE pms_admin (
 	email VARCHAR(255) PRIMARY KEY,
-  	FOREIGN KEY (email) REFERENCES pms_user
+  	FOREIGN KEY (email) REFERENCES pms_user ON DELETE CASCADE
 );
 
 CREATE TABLE accessed_report_categories (
 	email VARCHAR(255),
   	report_category VARCHAR(255),
   	PRIMARY KEY (email, report_category),
-  	FOREIGN KEY (email) REFERENCES pms_admin
+  	FOREIGN KEY (email) REFERENCES pms_admin ON DELETE CASCADE
 );
 
 CREATE TABLE coach (
@@ -39,19 +39,19 @@ CREATE TABLE coach (
   	number_of_hours_thought INT DEFAULT 0,
   	years_of_experience INT DEFAULT 0,
 	rating DECIMAL(3,2), -- Average coach rating
-  	FOREIGN KEY (email) REFERENCES pms_user
+  	FOREIGN KEY (email) REFERENCES pms_user ON DELETE CASCADE
 );
 
 CREATE TABLE lifeguard (
 	email VARCHAR(255) PRIMARY KEY,
-  	FOREIGN KEY (email) REFERENCES pms_user
+  	FOREIGN KEY (email) REFERENCES pms_user ON DELETE CASCADE
 );
 
 CREATE TABLE work_days_of_the_week (
 	email VARCHAR(255),
   	work_day VARCHAR(255),
   	PRIMARY KEY (email, work_day),
-  	FOREIGN KEY (email) REFERENCES lifeguard,
+  	FOREIGN KEY (email) REFERENCES lifeguard ON DELETE CASCADE,
   	CONSTRAINT chk_valid_work_day CHECK (work_day IN ('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'))
 );
 
@@ -59,14 +59,14 @@ CREATE TABLE non_member (
 	email VARCHAR(255) PRIMARY KEY,
   	access_hours_start VARCHAR(5),
   	access_hours_end VARCHAR(5),
-  	FOREIGN KEY (email) REFERENCES swimmer
+  	FOREIGN KEY (email) REFERENCES swimmer ON DELETE CASCADE
 );
 
 CREATE TABLE pms_member (
 	email VARCHAR(255) PRIMARY KEY,
   	membership_start_date DATE DEFAULT CURRENT_DATE,
   	membership_end_date DATE,
-  	FOREIGN KEY (email) REFERENCES swimmer,
+  	FOREIGN KEY (email) REFERENCES swimmer ON DELETE CASCADE,
   	CONSTRAINT chk_member_date_order CHECK (membership_end_date >= membership_start_date)
 );
 
@@ -93,7 +93,7 @@ CREATE TABLE report (
   	analysis_start_date DATE,
   	analysis_end_date DATE,
   	generated_by VARCHAR(255),
-  	FOREIGN KEY (generated_by) REFERENCES pms_admin,
+  	FOREIGN KEY (generated_by) REFERENCES pms_admin ON DELETE SET NULL,
   	CONSTRAINT chk_report_date_order CHECK (analysis_end_date >= analysis_start_date)
 );
 
@@ -116,7 +116,7 @@ CREATE TABLE swimming_session (
   	price DECIMAL(26, 2) DEFAULT 0,
   	coach_email VARCHAR(255),
   	PRIMARY KEY (session_name, session_date, start_hour, end_hour),
-	FOREIGN KEY (coach_email) REFERENCES coach,
+	FOREIGN KEY (coach_email) REFERENCES coach ON DELETE SET NULL,
   	CONSTRAINT chk_session_hours CHECK (end_hour >= start_hour)
 );
 
@@ -151,20 +151,20 @@ CREATE TABLE benefit (
   	start_date DATE,
   	end_date DATE,
   	swimmer_email VARCHAR(255),
-  	FOREIGN KEY (swimmer_email) REFERENCES swimmer
+  	FOREIGN KEY (swimmer_email) REFERENCES swimmer ON DELETE CASCADE
 );
 
 CREATE TABLE free_session (
 	benefit_id VARCHAR(255) PRIMARY KEY,
   	number_of_sesions INT,
   	session_type VARCHAR(255),
-  	FOREIGN KEY (benefit_id) REFERENCES benefit
+  	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
 CREATE TABLE free_membership (
 	benefit_id VARCHAR(255) PRIMARY KEY,
   	number_of_months INT,
-  	FOREIGN KEY (benefit_id) REFERENCES benefit
+  	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
 CREATE TABLE individual_session (
@@ -207,7 +207,7 @@ CREATE TABLE lifeguard_watch (
   	watch_date DATE,
   	time_slot VARCHAR(5),
   	PRIMARY KEY (email, pool_id),
-  	FOREIGN KEY (email) REFERENCES lifeguard,
+  	FOREIGN KEY (email) REFERENCES lifeguard ON DELETE SET NULL,
   	FOREIGN KEY (pool_id) REFERENCES pool
 );
 
@@ -218,7 +218,7 @@ CREATE TABLE swimmer_attend_session (
   	start_hour TIME,
   	end_hour TIME,
   	PRIMARY KEY (email, session_name, session_date, start_hour, end_hour),
-  	FOREIGN KEY (email) REFERENCES swimmer,
+  	FOREIGN KEY (email) REFERENCES swimmer ON DELETE CASCADE,
   	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
@@ -245,7 +245,6 @@ CREATE TABLE team_attend_race (
   	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
 );
 
-<<<<<<< Updated upstream
 -- Populating Database --
 
 -- Password is '123'
@@ -269,6 +268,10 @@ INSERT INTO swimmer (email, number_of_sessions_attended, member_of_team) VALUES
 
 INSERT INTO lifeguard (email) VALUES
 ('l@l.com');
+
+INSERT INTO pms_admin (email) VALUES
+('c@c.com');
+
 
 INSERT INTO work_days_of_the_week (email, work_day) VALUES
 ('l@l.com', 'Monday'),
@@ -322,7 +325,6 @@ INSERT INTO swimmer_attend_session (email, session_name, session_date, start_hou
 -- Benefits
 INSERT INTO benefit (benefit_id, start_date, end_date, swimmer_email) VALUES
 ('B1', '2024-03-01', '2024-06-01', 's@s.com');
-=======
 CREATE TABLE coach_rating (
 	id SERIAL PRIMARY KEY,
 	coach_email VARCHAR(255) NOT NULL REFERENCES coach(email) ON DELETE CASCADE,
@@ -361,4 +363,3 @@ CREATE TRIGGER trg_update_coach_rating_update
 AFTER UPDATE ON coach_rating
 FOR EACH ROW
 EXECUTE FUNCTION update_coach_average_rating();
->>>>>>> Stashed changes

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+	{% include "head.html" %}
+
+	<body class="bg-light">
+		{% include "nav.html" %}
+
+		<div class="container my-5">
+			<h1>Reports</h1>
+
+			{% if error %}
+			<div class="alert alert-danger">{{ error }}</div>
+			{% endif %}
+
+			<form method="POST" class="mb-4">
+				<div class="row g-3">
+					<div class="col-md-4">
+						<label for="start_date" class="form-label">Start Date</label>
+						<input type="date" id="start_date" name="start_date" class="form-control" required />
+					</div>
+					<div class="col-md-4">
+						<label for="end_date" class="form-label">End Date</label>
+						<input type="date" id="end_date" name="end_date" class="form-control" required />
+					</div>
+					<div class="col-md-4">
+						<label for="report_type" class="form-label">Report Type</label>
+						<select id="report_type" name="report_type" class="form-select" required>
+							<option value="" selected disabled>Choose...</option>
+							<option value="session">Session Report</option>
+							<option value="competition">Competition Report</option>
+							<option value="employee">Employee Report</option>
+						</select>
+					</div>
+				</div>
+				<button type="submit" class="btn btn-primary mt-3">Generate Report</button>
+			</form>
+
+			{% if report_data %}
+			<h2>{{ report_title }}</h2>
+			<p>
+				<strong>Start Date:</strong> {{ start_date }} | <strong>End Date:</strong> {{ end_date }}
+			</p>
+
+			{% if report_title == "Session Report" %}
+			<ul>
+				<li>Total Sessions: {{ report_data.total_sessions }}</li>
+				<li>One-to-One Sessions: {{ report_data.one_to_one_count }}</li>
+				<li>Class Sessions: {{ report_data.class_count }}</li>
+				<li>Race Sessions: {{ report_data.race_count }}</li>
+			</ul>
+			{% elif report_title == "Competition Report" %}
+			<ul>
+				<li>Total Races: {{ report_data.total_races }}</li>
+				<li>Total Participants: {{ report_data.total_participants }}</li>
+			</ul>
+			{% elif report_title == "Employee Report" %}
+			<ul>
+				<li>Total Days Worked (Lifeguards): {{ report_data.total_days_worked }}</li>
+				<li>Total Hours Worked (Coaches): {{ report_data.total_hours_worked }}</li>
+			</ul>
+			{% endif %} {% endif %}
+		</div>
+
+		{% include "footer.html" %}
+	</body>
+</html>
