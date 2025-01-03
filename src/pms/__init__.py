@@ -3,9 +3,7 @@ from flask import Flask, render_template
 from pms.authorization import login_manager
 from pms.config import env_settings
 from pms.db import close_db
-
-from pms.routes import auth, balance, calendar, lifeguard, session ,admin
-
+from pms.routes import admin, auth, balance, benefit, calendar, lifeguard, session
 
 
 def create_app(config_class=env_settings):
@@ -34,6 +32,7 @@ def create_app(config_class=env_settings):
     app.register_blueprint(lifeguard.bp)
     app.register_blueprint(balance.bp)
 
+    app.register_blueprint(benefit.bp)
 
     # Optional: Register error handlers
     @app.errorhandler(404)

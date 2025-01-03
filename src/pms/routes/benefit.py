@@ -117,6 +117,8 @@ def edit(id: int):
     benefit_type = get_benefit_type(id)
 
     if request.method == "POST":
+        # Get
+
         swimmer_email = request.form.get("swimmer_email")
         details = request.form.get("details")
         start_date = request.form.get("start_date")
@@ -137,21 +139,21 @@ def edit(id: int):
                 )
 
             flash("Benefit updated successfully!", "success")
-            return redirect(url_for("benefit.index"))
+            return redirect(url_for("admin.manage_benefits"))
         except Exception as e:
             flash(f"Error updating benefit: {str(e)}", "error")
-            return redirect(url_for("benefit.edit", id=id))
+            return redirect(url_for("admin.manage_benefits", id=id))
 
     cursor.execute("SELECT * FROM benefit WHERE benefit_id = %s", (id,))
     benefit = cursor.fetchone()
 
     if not benefit:
         flash("Benefit not found!", "error")
-        return redirect(url_for("benefit.index"))
+        return redirect(url_for("admin.manage_benefit"))
 
     bonus_amount = get_bonus_amount(id, benefit_type)
     return render_template(
-        "benefit/benefit_edit.html",
+        "benefit/edit.html",
         benefit=benefit,
         benefit_type=benefit_type,
         bonus_amount=bonus_amount,

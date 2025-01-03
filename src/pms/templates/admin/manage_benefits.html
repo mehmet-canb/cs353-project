@@ -1,64 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-	{% include "head.html" %}
+{% include "head.html" %}
 
-	<body class="bg-light">
-		{% include "nav.html" %}
+<body class="bg-light">
+	{% include "nav.html" %}
 
-		<div class="container my-5">
-			<h1>Manage Benefits</h1>
-
-			{% if error %}
-			<div class="alert alert-danger">{{ error }}</div>
-			{% endif %}
-
-			<!-- Add Benefit Form -->
-			<div class="mb-4">
-				<h3>Add a New Benefit</h3>
-				<form action="{{ url_for('admin.manage_benefits') }}" method="POST">
-					<div class="mb-3">
-						<label for="benefitId" class="form-label">Benefit ID</label>
-						<input type="text" class="form-control" id="benefitId" name="benefit_id" required />
+	<div class="container my-5">
+		<div class="row">
+			<div class="col-12 mb-4">
+				<div class="card shadow-sm">
+					<div class="card-header">
+						<h4 class="mb-0">Create New Benefit</h4>
 					</div>
-					<div class="mb-3">
-						<label for="description" class="form-label">Description</label>
-						<textarea
-							class="form-control"
-							id="description"
-							name="description"
-							rows="3"
-							required
-						></textarea>
+					<div class="card-body">
+						<form method="POST" action="{{ url_for('admin.manage_benefits') }}">
+							<div class="row">
+								<div class="col-md-6">
+									<div class="mb-3">
+										<label for="swimmer_email" class="form-label">Swimmer Email</label>
+										<input type="email" class="form-control" id="swimmer_email" name="swimmer_email"
+											required>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="mb-3">
+										<label for="benefit_type" class="form-label">Benefit Type</label>
+										<select class="form-select" id="benefit_type" name="benefit_type" required>
+											<option value="general">General</option>
+											<option value="member">Member Bonus</option>
+											<option value="enrollment">Enrollment Bonus</option>
+										</select>
+									</div>
+								</div>
+							</div>
+							<div class="mb-3" id="bonus_amount_div">
+								<label for="bonus_amount" class="form-label">Bonus Amount</label>
+								<input type="number" step="0.01" class="form-control" id="bonus_amount"
+									name="bonus_amount">
+							</div>
+							<div class="mb-3">
+								<label for="details" class="form-label">Details</label>
+								<textarea class="form-control" id="details" name="details" rows="2"></textarea>
+							</div>
+							<div class="row">
+								<div class="col-md-6">
+									<div class="mb-3">
+										<label for="start_date" class="form-label">Start Date</label>
+										<input type="date" class="form-control" id="start_date" name="start_date"
+											required>
+									</div>
+								</div>
+								<div class="col-md-6">
+									<div class="mb-3">
+										<label for="end_date" class="form-label">End Date</label>
+										<input type="date" class="form-control" id="end_date" name="end_date" required>
+									</div>
+								</div>
+							</div>
+							<button type="submit" class="btn btn-primary">Create Benefit</button>
+						</form>
 					</div>
-					<button type="submit" class="btn btn-primary">Add Benefit</button>
-				</form>
+				</div>
 			</div>
 
-			<!-- List of Benefits -->
-			<h3>Existing Benefits</h3>
-			{% if benefits %}
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>ID</th>
-						<th>Description</th>
-					</tr>
-				</thead>
-				<tbody>
-					{% for benefit in benefits %}
-					<tr>
-						<td>{{ benefit.id }}</td>
-						<td>{{ benefit.description }}</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-			{% else %}
-			<p class="text-muted">No benefits found.</p>
-			{% endif %}
+			<div class="col-12">
+				<div class="card shadow-sm">
+					<div class="card-header">
+						<h4 class="mb-0">Existing Benefits</h4>
+					</div>
+					<div class="card-body">
+						{% if benefits %}
+						<div class="table-responsive">
+							<table class="table table-hover">
+								<thead>
+									<tr>
+										<th>ID</th>
+										<th>Swimmer</th>
+										<th>Details</th>
+										<th>Amount</th>
+										<th>Start Date</th>
+										<th>End Date</th>
+										<!-- <th>Actions</th> -->
+									</tr>
+								</thead>
+								<tbody>
+									{% for benefit in benefits %}
+									<tr>
+										<td>{{ benefit.benefit_id }}</td>
+										<td>{{ benefit.swimmer_email }}</td>
+										<td>{{ benefit.details }}</td>
+										<td>{% if benefit.bonus_amount %}${{ benefit.bonus_amount }}{%
+											else %}-{% endif %}</td>
+										<td>{{ benefit.start_date }}</td>
+										<td>{{ benefit.end_date }}</td>
+										<!-- <td>
+											<div class="btn-group">
+												<a href="{{ url_for('benefit.edit', id=benefit.benefit_id) }}"
+													class="btn btn-sm btn-warning">
+													<i class="bi bi-pencil"></i>
+												</a>
+												<form action="{{ url_for('benefit.delete', id=benefit.benefit_id) }}"
+													method="POST" class="d-inline">
+													<button type="submit" class="btn btn-sm btn-danger">
+														<i class="bi bi-trash"></i>
+													</button>
+												</form>
+											</div>
+										</td> -->
+									</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+						</div>
+						{% else %}
+						<p class="text-center text-muted my-4">No benefits found.</p>
+						{% endif %}
+					</div>
+				</div>
+			</div>
 		</div>
+	</div>
 
-		{% include "footer.html" %}
-		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-	</body>
+	{% include "footer.html" %}
+
+	<script>
+		document.getElementById('benefit_type').addEventListener('change', function () {
+			const bonusDiv = document.getElementById('bonus_amount_div');
+			const bonusInput = document.getElementById('bonus_amount');
+
+			if (this.value === 'general') {
+				bonusDiv.style.display = 'none';
+				bonusInput.required = false;
+			} else {
+				bonusDiv.style.display = 'block';
+				bonusInput.required = true;
+			}
+		});
+
+		document.getElementById('benefit_type').dispatchEvent(new Event('change'));
+	</script>
+</body>
+
 </html>
