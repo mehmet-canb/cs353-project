@@ -14,7 +14,7 @@ install-pre-commit:
 	pre-commit install
 
 local-run:
-	gunicorn -w 4 -b 0.0.0.0:8000 "pms:create_app()"
+	gunicorn -w 1 -b 0.0.0.0:8000 "pms:create_app()"
 
 linux-local-run:
 	rye run gunicorn -w 4 -b 0.0.0.0:8000 "pms:create_app()"

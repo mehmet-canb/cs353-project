@@ -201,7 +201,8 @@ def create_session_final():
         # 1) Insert the base session
         cursor.execute(
             """
-            INSERT INTO swimming_session (session_name, session_date, start_hour, end_hour, price, coach_email, details)
+            INSERT INTO swimming_session (session_name, session_date, start_hour,
+                                            end_hour, price, coach_email, details)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (
@@ -229,8 +230,10 @@ def create_session_final():
         elif session_type == "class_session":
             cursor.execute(
                 """
-                INSERT INTO class_session (session_name, session_date, start_hour, end_hour, min_age, max_age
-                                           number_of_participants, max_capacity, class_level, signup_date)
+                INSERT INTO class_session (session_name, session_date, start_hour,
+                                            end_hour, min_age, max_age,
+                                            number_of_participants, max_capacity,
+                                            class_level, signup_date)
                 VALUES (%s, %s, %s, %s, %s, %s, 0, %s, %s, %s)
                 """,
                 (
@@ -249,7 +252,8 @@ def create_session_final():
             # If you need min_age and max_age (like the original code suggests)
             cursor.execute(
                 """
-                INSERT INTO race (session_name, session_date, start_hour, end_hour, min_age, max_age, stroke_style)
+                INSERT INTO race (session_name, session_date, start_hour, end_hour,
+                                    min_age, max_age, stroke_style)
                 VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
@@ -341,8 +345,8 @@ def list_sessions():
     cursor.execute(
         """
         SELECT s.session_name, s.session_date, s.start_hour, s.end_hour,
-               s.price, s.coach_email, s.details, c.min_age, c.max_age, c.number_of_participants,
-               c.max_capacity, c.class_level, c.signup_date,
+               s.price, s.coach_email, s.details, c.min_age, c.max_age,
+               c.number_of_participants, c.max_capacity, c.class_level, c.signup_date,
                string_agg(DISTINCT b.pool_id, ', ') as pool_id,
                string_agg(b.lane_id, ', ' ORDER BY b.lane_id) as pool_lanes
         FROM swimming_session s
@@ -497,7 +501,12 @@ def update_session(session_name, session_date, start_hour, end_hour):
                 """
                 WITH swimming_update AS (
                     UPDATE swimming_session
-                    SET session_name = %s, session_date = %s, start_hour = %s, end_hour = %s, price = %s, details = %s
+                    SET session_name = %s,
+                        session_date = %s,
+                        start_hour = %s,
+                        end_hour = %s,
+                        price = %s,
+                        details = %s
                     WHERE session_name = %s
                     AND session_date = %s
                     AND start_hour = %s

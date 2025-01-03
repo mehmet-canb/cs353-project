@@ -54,6 +54,11 @@
                                             <label class="form-label text-muted">Current Balance</label>
                                             <p class="form-control-plaintext">${{ "%.2f"|format(user.balance) }}</p>
                                         </div>
+                                        <form method="GET" action="{{ url_for('balance.balance') }}" class="mb-3">
+                                            <div class="d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary btn-lg">Add Balance</button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
                             </div>

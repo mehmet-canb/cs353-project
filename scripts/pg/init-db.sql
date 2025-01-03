@@ -395,6 +395,28 @@ FOR EACH ROW
 EXECUTE FUNCTION process_enrollment_bonus();
 
 
+-- Trigger for unmatching teams
+CREATE OR REPLACE FUNCTION insert_team_if_not_exists()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check if the team already exists in the table
+    IF NOT EXISTS (SELECT 1 FROM team WHERE team_name = NEW.member_of_team OR NEW.member_of_team IS NULL) THEN
+        -- Insert the team into the table if it doesn't exist
+        INSERT INTO team (team_name)
+        VALUES (NEW.member_of_team);
+    END IF;
+
+    -- Return the NEW record to allow the INSERT to continue on the Task table
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER new_team_on_insert
+BEFORE INSERT ON swimmer
+FOR EACH ROW
+EXECUTE FUNCTION insert_team_if_not_exists();
+
+
 -- Populating Database --
 
 -- Pools and lanes --
