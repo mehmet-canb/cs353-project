@@ -1,10 +1,11 @@
 import json
 
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, Response, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from pms.authorization import get_user_by_email
 from pms.db import get_cursor
+from pms.routes.main import join_session_logic
 
 bp = Blueprint("balance", __name__)
 
@@ -108,17 +109,19 @@ def buy():
     )
     cursor.connection.commit()
 
-    return redirect(url_for("session.list_sessions"))
-    # TODO: Fix this and update the session.join_session route
-    # return redirect(
-    #     url_for(
-    #         "session.join_session",
-    #         session_name=session_name,
-    #         session_date=session_date,
-    #         start_hour=session_start_hour,
-    #         end_hour=session_end_hour,
-    #     )
-    # )
+    ret = join_session_logic(
+        session_name,
+        session_date,
+        session_start_hour,
+        session_end_hour,
+        current_user.id,
+    )
+
+    if len(ret) > 1:
+        print(ret[0])
+        return redirect(url_for("balance.balance", error=ret[0]))
+    else:
+        return Response(status=200)
 
 
 @bp.route("/balance/add", methods=["POST"])
