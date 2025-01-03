@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template, request
+
+from flask import Blueprint, redirect, render_template, request, url_for
+
 from flask_login import current_user, login_required
 
 from pms.db import get_cursor
@@ -134,6 +136,7 @@ def sessions():
 
     return render_template(
         "sessions.html",
+        attended_sessions=attended_sessions,
         past_sessions=past_sessions,
         upcoming_sessions=upcoming_sessions,
         available_sessions=available_sessions,
@@ -146,7 +149,7 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
     Handles the logic for a user joining a session.
     """
     cur = get_cursor()
-    # db = get_db()
+
 
     try:
         # Check if the session exists and retrieve capacity
@@ -191,8 +194,8 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
 
         # Insert into swimmer_attend_session
         insert_query = """
-            INSERT INTO swimmer_attend_session
-            (email, session_name, session_date, start_hour, end_hour)
+            INSERT INTO swimmer_attend_session (email, session_name, session_date,
+                                                start_hour, end_hour)
             VALUES (%s, %s, %s, %s, %s);
         """
         cur.execute(
@@ -262,7 +265,6 @@ def disenroll_session():
         return "Invalid session data.", 400
 
     cur = get_cursor()
-    # db = get_db()
 
     try:
         # Start transaction
@@ -340,7 +342,7 @@ def rate_coach():
         return "Comment must be smaller than 256 characters", 400
 
     cur = get_cursor()
-    # db = get_db()
+
 
     try:
         # Start transaction
@@ -435,6 +437,7 @@ def rate_coach():
                     end_hour,
                     rating,
                     comment,
+
                 ),
             )
             message = "Successfully rated the coach."
