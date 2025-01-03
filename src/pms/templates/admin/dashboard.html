@@ -100,19 +100,27 @@
 						<thead>
 							<tr>
 								<th>ID</th>
-								<th>Description</th>
+								<th>Details</th>
+								<th>Start Date</th>
+								<th>End Date</th>
+								<th>Bonus Amount</th>
+								<th>Assigned to</th>
 							</tr>
 						</thead>
 						<tbody>
 							{% for benefit in benefits[:15] %}
 							<tr>
-								<td>{{ benefit.id }}</td>
-								<td>{{ benefit.description }}</td>
+								<td>{{ benefit.benefit_id }}</td>
+								<td>{{ benefit.details }}</td>
+								<td>{{ benefit.start_date}}</td>
+								<td>{{ benefit.end_date }}</td>
+								<td>{% if benefit.bonus_amount %}${{ "%.2f"|format(benefit.bonus_amount) }}{% else %}-{% endif %}</td>
+								<td>{{ benefit.swimmer_email }}</td>
 							</tr>
 							{% endfor %}
 						</tbody>
 					</table>
-					<a href="{{ url_for('admin.list_benefits') }}" class="btn btn-primary"
+					<a href="{{ url_for('admin.manage_benefits') }}" class="btn btn-primary"
 						>See All Benefits</a
 					>
 					{% else %}

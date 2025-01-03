@@ -168,11 +168,26 @@ def list_sessions():
 def list_benefits():
     try:
         cursor = get_cursor()
-        cursor.execute("SELECT * FROM benefit")
+        cursor.execute("""
+            SELECT
+                b.benefit_id,
+                b.swimmer_email,
+                b.details,
+                b.start_date,
+                b.end_date,
+                COALESCE(mb.bonus_amount, eb.bonus_amount) as bonus_amount,
+                CASE
+                    WHEN mb.benefit_id IS NOT NULL THEN 'Member'
+                    WHEN eb.benefit_id IS NOT NULL THEN 'Enrollment'
+                    ELSE 'General'
+                END as benefit_type
+            FROM benefit b
+            LEFT JOIN benefit_member_bonus mb ON b.benefit_id = mb.benefit_id
+            LEFT JOIN benefit_enrollment_bonus eb ON b.benefit_id = eb.benefit_id
+            ORDER BY b.benefit_id DESC
+        """)
         benefits = cursor.fetchall()
-
         return render_template("admin/benefits.html", benefits=benefits)
-
     except Exception as e:
         return render_template(
             "admin/benefits.html",
@@ -184,31 +199,65 @@ def list_benefits():
 @bp.route("/manage-benefits", methods=["GET", "POST"])
 @admin_required
 def manage_benefits():
-    try:
+    fetch_query = """
+            SELECT
+                b.benefit_id,
+                b.swimmer_email,
+                b.details,
+                b.start_date,
+                b.end_date,
+                COALESCE(mb.bonus_amount, eb.bonus_amount) as bonus_amount,
+                CASE
+                    WHEN mb.benefit_id IS NOT NULL THEN 'Member'
+                    WHEN eb.benefit_id IS NOT NULL THEN 'Enrollment'
+                    ELSE 'General'
+                END as benefit_type
+            FROM benefit b
+            LEFT JOIN benefit_member_bonus mb ON b.benefit_id = mb.benefit_id
+            LEFT JOIN benefit_enrollment_bonus eb ON b.benefit_id = eb.benefit_id
+            ORDER BY b.benefit_id DESC
+        """
+    if request.method == "POST":
+        swimmer_email = request.form.get("swimmer_email")
+        details = request.form.get("details")
+        start_date = request.form.get("start_date")
+        end_date = request.form.get("end_date")
+        benefit_type = request.form.get("benefit_type")
+        bonus_amount = request.form.get("bonus_amount")
+
         cursor = get_cursor()
-
-        if request.method == "POST":
-            # Add a new benefit
-            benefit_id = request.form.get("benefit_id")
-            description = request.form.get("description")
+        try:
+            # Insert base benefit
             cursor.execute(
-                "INSERT INTO benefit (id, description) VALUES (%s, %s)",
-                (benefit_id, description),
+                "INSERT INTO benefit (swimmer_email, details, start_date, end_date) VALUES (%s, %s, %s, %s) RETURNING benefit_id",
+                (swimmer_email, details, start_date, end_date),
             )
+            benefit_id = cursor.fetchone()["benefit_id"]
+
+            # Insert bonus if applicable
+            if benefit_type in ["member", "enrollment"]:
+                table = f"benefit_{benefit_type}_bonus"
+                cursor.execute(
+                    f"INSERT INTO {table} (benefit_id, bonus_amount) VALUES (%s, %s)",
+                    (benefit_id, bonus_amount),
+                )
+
             cursor.connection.commit()
-
-        # Fetch all benefits
-        cursor.execute("SELECT * FROM benefit")
-        benefits = cursor.fetchall()
-
-        return render_template("admin/manage_benefits.html", benefits=benefits)
-
-    except Exception as e:
-        return render_template(
-            "admin/manage_benefits.html",
-            error=f"Failed to manage benefits: {str(e)}",
-            benefits=[],
-        )
+            cursor.execute()
+            benefits = cursor.fetchall()
+            return render_template("admin/manage_benefits.html", benefits=benefits)
+        except Exception as e:
+            cursor.execute(fetch_query)
+            benefits = cursor.fetchall()
+            return render_template(
+                "admin/manage_benefits.html",
+                error=f"Failed to manage benefits: {str(e)}",
+                benefits=benefits,
+            )
+    cursor = get_cursor()
+    cursor.execute(fetch_query)
+    benefits = cursor.fetchall()
+    return render_template("admin/manage_benefits.html", benefits=benefits)
 
 
 @bp.route("/add_user", methods=["POST"])
