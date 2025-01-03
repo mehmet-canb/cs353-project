@@ -211,11 +211,10 @@ CREATE TABLE lifeguard_watch (
 	email VARCHAR(255),
   	pool_id VARCHAR(255),
   	watch_date DATE,
-
-  	time_slot VARCHAR(5),
-  	PRIMARY KEY (email, pool_id),
+  	start_hour TIME,
+  	end_hour TIME,
+  	PRIMARY KEY (email, pool_id, watch_date, start_hour, end_hour),
   	FOREIGN KEY (email) REFERENCES lifeguard ON DELETE SET NULL,
-
   	FOREIGN KEY (pool_id) REFERENCES pool
 );
 
@@ -394,6 +393,9 @@ INSERT INTO swimmer (email, number_of_sessions_attended, member_of_team) VALUES
 -- Lifeguard
 INSERT INTO lifeguard (email) VALUES
 ('l@l.com');
+
+INSERT INTO pms_admin (email) VALUES
+('c@c.com');
 
 INSERT INTO work_days_of_the_week (email, work_day) VALUES
 ('l@l.com', 'Monday'),
