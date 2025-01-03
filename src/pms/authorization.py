@@ -28,7 +28,9 @@ def user_loader(email) -> User | None:
         is_coach = is_user_coach(email)
         is_admin = is_user_admin(email)
         is_lifeguard = is_user_lifeguard(email)
-        user = User(id=email, is_coach=is_coach, is_admin=is_admin, is_lifeguard=is_lifeguard)
+        user = User(
+            id=email, is_coach=is_coach, is_admin=is_admin, is_lifeguard=is_lifeguard
+        )
         login_user(user)
         return user
     return None
@@ -74,7 +76,6 @@ def is_user_coach(email: str) -> bool:
     cursor = get_cursor()
     cursor.execute("SELECT * FROM coach WHERE email = %s", (email,))
     return cursor.fetchone() is not None
-
 
 
 def is_user_admin(email: str) -> bool:
@@ -127,7 +128,6 @@ def create_swimmer(
         (team_name,),
     )
     cursor.connection.commit()
-
 
 
 def create_user(

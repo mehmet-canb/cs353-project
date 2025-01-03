@@ -4,38 +4,47 @@
 			<i class="bi bi-water me-2"></i>
 			Pool Management System
 		</a>
-		<button
-			class="navbar-toggler"
-			type="button"
-			data-bs-toggle="collapse"
-			data-bs-target="#navbarNav"
-		>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<div class="collapse navbar-collapse" id="navbarNav">
 			<ul class="navbar-nav ms-auto">
-				<!-- General links -->
 				<li class="nav-item">
-					<a class="nav-link active" href="{{ url_for('main.index') }}">
-						<i class="bi bi-house-door"></i> Home
+					<a class="nav-link active" href="{{ url_for('main.index') }}"><i class="bi bi-house-door"></i>
+						Home</a>
+				</li>
+				{% if current_user.is_lifeguard %}
+				<li class="nav-item">
+					<a class="nav-link" href="{{ url_for('lifeguard.lifeguard_list') }}"><i class="bi bi-person"></i>
+						Lifeguard</a>
+				</li>
+				{% endif %}
+				<li class="nav-item">
+					<a class="nav-link" href="{{ url_for('calendar.view_calendar')}}"><i class="bi bi-calendar3"></i>
+						Calendar </a>
+				</li>
+				{% if current_user.is_coach %}
+				<li class="nav-item">
+					<a class="nav-link" href="{{ url_for('session.list_sessions')}}"><i class="bi bi-card-list"></i>
+						Sessions </a>
+				</li>
+				{% else %}
+				<li class="nav-item">
+					<a class="nav-link" href="{{ url_for('main.sessions')}}"><i class="bi bi-card-list"></i> Sessions
 					</a>
 				</li>
+				{% endif %}
+				{% if current_user.is_authenticated %}
 				<li class="nav-item">
-					<a class="nav-link" href="#"> <i class="bi bi-calendar3"></i> Schedule </a>
-					<!-- TODO: Add link to schedule page -->
+					<a class="nav-link" href="{{ url_for('main.profile') }}"><i class="bi bi-person"></i> Profile</a>
 				</li>
+				{% endif %}
 
 				<!-- Admin-specific links -->
 				{% if current_user.is_authenticated and current_user.is_admin %}
 				<li class="nav-item dropdown">
-					<a
-						class="nav-link dropdown-toggle"
-						href="#"
-						id="adminDropdown"
-						role="button"
-						data-bs-toggle="dropdown"
-						aria-expanded="false"
-					>
+					<a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button"
+						data-bs-toggle="dropdown" aria-expanded="false">
 						<i class="bi bi-gear"></i> Admin
 					</a>
 					<ul class="dropdown-menu" aria-labelledby="adminDropdown">
