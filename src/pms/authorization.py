@@ -78,6 +78,46 @@ def is_user_lifeguard(email: str) -> bool:
     return cursor.fetchone() is not None
 
 
+def create_swimmer(
+    email: str,
+    password: str,
+    username: str,
+    phone_no: str,
+    forename: str,
+    middlename: str,
+    surname: str,
+    date_of_birth: str,
+    team_name: str,
+) -> None:
+    create_user(
+        email,
+        password,
+        username,
+        phone_no,
+        forename,
+        middlename,
+        surname,
+        date_of_birth,
+    )
+    cursor = get_cursor()
+    cursor.execute(
+        """
+        INSERT INTO swimmer (email, member_of_team)
+        VALUES (%s, %s)
+    """,
+        (email, team_name),
+    )
+    cursor.execute(
+        """
+        INSERT INTO team
+        VALUES (%s)
+        ON CONFLICT DO NOTHING
+        """,
+        (team_name,),
+    )
+    cursor.connection.commit()
+
+
 def create_user(
     email: str,
     password: str,
@@ -86,15 +126,25 @@ def create_user(
     forename: str,
     middlename: str,
     surname: str,
+    date_of_birth: str,
 ) -> None:
     password_hash = sha256(password.encode()).hexdigest()
     cursor = get_cursor()
     cursor.execute(
         """
-        INSERT INTO pms_user (email, password_hash, username, phone_no, forename, middlename, surname)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO pms_user (email, password_hash, username, phone_no, forename, middlename, surname, birth_date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,  # noqa: E501
-        (email, password_hash, username, phone_no, forename, middlename, surname),
+        (
+            email,
+            password_hash,
+            username,
+            phone_no,
+            forename,
+            middlename,
+            surname,
+            date_of_birth,
+        ),
     )
     cursor.connection.commit()
 
@@ -108,7 +158,7 @@ def coach_required(func):
     @coach_required
     def dashboard():
         return render_template("dashboard.html")
-    """
+    """  # noqa: E501
 
     @wraps(func)
     def decorated_view(*args, **kwargs):

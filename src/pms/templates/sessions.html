@@ -185,7 +185,8 @@
                     const endHour = this.dataset.end;
 
                     try {
-                        const response = await fetch('/sessions/join', {
+                        // TODO: Fix this, its not updating the sessions table
+                        const response = await fetch('/balance/cart', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -197,9 +198,10 @@
                         });
 
                         const message = await response.text();
-                        flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
+                        document.write(message);
+                        // flashMessages.innerHTML = `<div class="alert alert-info">${message}</div>`;
                         if (response.ok) {
-                            setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
+                            // setTimeout(() => location.reload(), 2000); // Refresh to reflect changes
                         }
                     } catch (error) {
                         flashMessages.innerHTML = `<div class="alert alert-danger">Error joining session.</div>`;

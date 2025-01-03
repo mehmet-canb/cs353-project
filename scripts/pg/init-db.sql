@@ -11,13 +11,13 @@ CREATE TABLE pms_user (
 );
 
 CREATE TABLE team (
-	team_name VARCHAR(512) PRIMARY KEY
+	team_name VARCHAR(512) PRIMARY KEY DEFAULT 'INDIVIDUAL'
 );
 
 CREATE TABLE swimmer (
 	email VARCHAR(255) PRIMARY KEY,
   	number_of_sessions_attended INT DEFAULT 0,
-  	member_of_team VARCHAR(512),
+  	member_of_team VARCHAR(512) DEFAULT 'INDIVIDUAL',
   	FOREIGN KEY (email) REFERENCES pms_user,
   	FOREIGN KEY (member_of_team) REFERENCES team
 );
@@ -225,8 +225,8 @@ CREATE TABLE swimmer_attend_session (
   	start_hour TIME,
   	end_hour TIME,
   	PRIMARY KEY (email, session_name, session_date, start_hour, end_hour),
-  	FOREIGN KEY (email) REFERENCES swimmer,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
+  	FOREIGN KEY (email) REFERENCES swimmer ON UPDATE CASCADE ON DELETE CASCADE,
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE ON DELETE CASCADE
 );
 
 CREATE TABLE booking (
@@ -265,6 +265,63 @@ CREATE TABLE coach_rating (
 	comment VARCHAR(255) NOT NULL,
     UNIQUE (coach_email, swimmer_email, session_name, session_date, start_hour, end_hour)
 );
+
+-- PMS Transactions --
+CREATE TABLE pms_transaction (
+	user_id VARCHAR(255) NOT NULL,
+	session_name VARCHAR(255) NOT NULL,
+    session_date DATE NOT NULL,
+    start_hour TIME NOT NULL,
+    end_hour TIME NOT NULL,
+	price DECIMAL(26, 2) DEFAULT NULL,
+    UNIQUE (user_id, session_name, session_date, start_hour, end_hour),
+	PRIMARY KEY (user_id, session_name, session_date, start_hour, end_hour),
+	FOREIGN KEY (user_id) REFERENCES pms_user(email)
+		ON DELETE CASCADE,
+	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session
+		ON UPDATE CASCADE
+		ON DELETE CASCADE
+);
+
+-- Trigger function to update the swimmer's balance
+CREATE OR REPLACE FUNCTION update_pms_user_balance()
+RETURNS TRIGGER AS $$
+BEGIN
+	IF NEW.price IS NULL THEN
+		UPDATE pms_transaction
+		SET price = (
+			SELECT price
+			FROM swimming_session
+			WHERE session_name = NEW.session_name
+				AND session_date = NEW.session_date
+				AND start_hour = NEW.start_hour
+				AND end_hour = NEW.end_hour
+		)
+		WHERE user_id = NEW.user_id
+			AND session_name = NEW.session_name
+			AND session_date = NEW.session_date
+			AND start_hour = NEW.start_hour
+			AND end_hour = NEW.end_hour;
+	END IF;
+	UPDATE pms_user
+	SET balance = balance - ( -- Returns the price of the newly enrolled session
+							SELECT price
+							FROM swimming_session
+							WHERE session_name = NEW.session_name
+								AND session_date = NEW.session_date
+								AND start_hour = NEW.start_hour
+								AND end_hour = NEW.end_hour
+							)
+	WHERE email = NEW.user_id;
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for INSERT on pms_transaction
+CREATE TRIGGER trg_update_pms_user_balance
+AFTER INSERT ON pms_transaction
+FOR EACH ROW
+EXECUTE FUNCTION update_pms_user_balance();
 
 -- Trigger function to update the coach's average rating
 CREATE OR REPLACE FUNCTION update_coach_average_rating()
@@ -323,7 +380,8 @@ INSERT INTO coach (email, fee_per_hour, years_of_experience) VALUES
 
 INSERT INTO team (team_name) VALUES
 ('Dolphins'),
-('Sharks');
+('Sharks'),
+('INDIVIDUAL');
 
 INSERT INTO swimmer (email, number_of_sessions_attended, member_of_team) VALUES
 ('s@s.com', 10, 'Dolphins'),

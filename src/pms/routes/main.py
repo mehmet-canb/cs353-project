@@ -19,7 +19,11 @@ def profile():
     user = cursor.fetchone()
 
     cursor.execute(
-        "SELECT * FROM benefit JOIN pms_user ON benefit.swimmer_email = pms_user.email WHERE benefit.swimmer_email = %s",
+        """
+        SELECT *
+        FROM benefit JOIN pms_user ON benefit.swimmer_email = pms_user.email
+        WHERE benefit.swimmer_email = %s
+        """,
         (current_user.id,),
     )
     benefits = cursor.fetchall()
@@ -118,16 +122,29 @@ def join_session_logic(session_name, session_date, start_hour, end_hour, user_em
               AND ss.start_hour = %s AND ss.end_hour = %s;
         """
         cur.execute(check_query, (session_name, session_date, start_hour, end_hour))
-        session_data = cur.fetchone()
+        class_session_data = cur.fetchone()
 
-        if not session_data:
+        check_query = """
+            SELECT *
+            FROM swimming_session
+            WHERE session_name = %s AND session_date = %s
+              AND start_hour = %s AND end_hour = %s;
+        """
+        cur.execute(check_query, (session_name, session_date, start_hour, end_hour))
+        swimming_session_data = cur.fetchone()
+
+        if not swimming_session_data:
             return "Session not found.", 404
 
-        max_capacity = session_data["max_capacity"]
-        current_participants = session_data["number_of_participants"]
+        if not class_session_data:
+            max_capacity = None
+            current_participants = None
+        else:
+            max_capacity = class_session_data["max_capacity"]
+            current_participants = class_session_data["number_of_participants"]
 
-        if current_participants >= max_capacity:
-            return "Session is full. You cannot join.", 400
+            if current_participants >= max_capacity:
+                return "Session is full. You cannot join.", 400
 
         # Start transaction
         cur.execute("BEGIN;")

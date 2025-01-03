@@ -39,6 +39,17 @@
                                 </div>
                             </div>
                             <div class="mb-3">
+                                <label for="date_of_birth" class="form-label">Date of Birth*</label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="team_name" class="form-label">Team Name* (Select existing or enter new)</label>
+                                <input class="form-control" list="teamOptions" id="team_name" name="team_name" maxlength="512" required>
+                                <datalist id="teamOptions">
+                                    <option value="INDIVIDUAL">Individual (No Team)</option>
+                                </datalist>
+                            </div>
+                            <div class="mb-3">
                                 <label for="phone_no" class="form-label">Phone Number*</label>
                                 <input type="tel" maxlength="15" class="form-control" id="phone_no" name="phone_no" required>
                             </div>
