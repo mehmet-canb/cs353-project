@@ -172,7 +172,7 @@ def init_filter_params(
         user_class_params.append("max_age")
 
 
-@bp.route("/sessions", methods=["POST"])
+@bp.route("/view_session", methods=["POST"])
 @login_required
 def session_info():
     results = []
