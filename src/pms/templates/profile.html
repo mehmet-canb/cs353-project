@@ -70,6 +70,7 @@
                             <thead>
                                 <tr>
                                     <th>Benefit</th>
+                                    <th>Details</th>
                                     <th>Start Date</th>
                                     <th>End Date</th>
                                 </tr>
@@ -78,6 +79,7 @@
                                 {% for benefit in benefits %}
                                 <tr>
                                     <td>{{ benefit.benefit_id }}</td>
+                                    <td>{{ benefit.details }}</td>
                                     <td>{{ benefit.start_date }}</td>
                                     <td>{{ benefit.end_date }}</td>
                                 </tr>

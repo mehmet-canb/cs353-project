@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.html" %}
+
+<body class="bg-light">
+    {% include "nav.html" %}
+
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Benefits Management</h2>
+            <a href="{{ url_for('benefit.create') }}" class="btn btn-primary">Define Benefit</a>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Benefit ID</th>
+                            <th>Swimmer Email</th>
+                            <th>Details</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for benefit in benefits %}
+                        <tr>
+                            <td>{{ benefit.benefit_id }}</td>
+                            <td>{{ benefit.swimmer_email }}</td>
+                            <td>{{ benefit.details }}</td>
+                            <td>{{ benefit.start_date }}</td>
+                            <td>{{ benefit.end_date }}</td>
+                            <td>
+                                <a href="{{ url_for('benefit.edit', id=benefit.benefit_id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                <a href="{{ url_for('benefit.delete', id=benefit.benefit_id) }}" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% include "footer.html" %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -78,6 +78,12 @@ def is_user_lifeguard(email: str) -> bool:
     return cursor.fetchone() is not None
 
 
+def is_user_admin(email: str) -> bool:
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM pms_admin WHERE email = %s", (email,))
+    return cursor.fetchone() is not None
+
+
 def create_user(
     email: str,
     password: str,

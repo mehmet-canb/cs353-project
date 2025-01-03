@@ -151,24 +151,25 @@ CREATE TABLE employee_report (
 );
 
 CREATE TABLE benefit (
-	benefit_id VARCHAR(255) PRIMARY KEY,
-  	start_date DATE,
-  	end_date DATE,
-  	swimmer_email VARCHAR(255),
-  	FOREIGN KEY (swimmer_email) REFERENCES swimmer
+    benefit_id SERIAL PRIMARY KEY,
+    start_date DATE,
+    end_date DATE,
+    swimmer_email VARCHAR(255),
+	details VARCHAR(512),
+	CONSTRAINT chk_benefit_date_order CHECK (end_date >= start_date),
+    FOREIGN KEY (swimmer_email) REFERENCES swimmer
 );
 
-CREATE TABLE free_session (
-	benefit_id VARCHAR(255) PRIMARY KEY,
-  	number_of_sesions INT,
-  	session_type VARCHAR(255),
-  	FOREIGN KEY (benefit_id) REFERENCES benefit
+CREATE TABLE benefit_member_bonus (
+	benefit_id SERIAL PRIMARY KEY,
+	bonus_amount DECIMAL(26, 2),
+	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
-CREATE TABLE free_membership (
-	benefit_id VARCHAR(255) PRIMARY KEY,
-  	number_of_months INT,
-  	FOREIGN KEY (benefit_id) REFERENCES benefit
+CREATE TABLE benefit_enrollment_bonus (
+	benefit_id SERIAL PRIMARY KEY,
+	bonus_amount DECIMAL(26, 2),
+	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
 CREATE TABLE individual_session (
@@ -293,6 +294,48 @@ AFTER UPDATE ON coach_rating
 FOR EACH ROW
 EXECUTE FUNCTION update_coach_average_rating();
 
+-- Trigger Function for Member Bonus
+CREATE OR REPLACE FUNCTION process_member_bonus()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE pms_user
+    SET balance = balance + NEW.bonus_amount
+    FROM benefit b
+    WHERE pms_user.email = b.swimmer_email
+    AND b.benefit_id = NEW.benefit_id;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for Member Bonus
+CREATE TRIGGER trg_benefit_member_bonus
+AFTER INSERT ON benefit_member_bonus
+FOR EACH ROW
+EXECUTE FUNCTION process_member_bonus();
+
+-- Trigger Function for Enrollment Bonus
+CREATE OR REPLACE FUNCTION process_enrollment_bonus()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE pms_user
+    SET balance = balance + b.bonus_amount
+    FROM benefit_enrollment_bonus b
+    JOIN benefit bf ON b.benefit_id = bf.benefit_id
+    WHERE pms_user.email = NEW.email
+    AND CURRENT_DATE BETWEEN bf.start_date AND bf.end_date;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger for Enrollment Bonus
+CREATE TRIGGER trg_benefit_enrollment_bonus
+AFTER INSERT ON swimmer_attend_session
+FOR EACH ROW
+EXECUTE FUNCTION process_enrollment_bonus();
+
+
 -- Populating Database --
 
 -- Pools and lanes --
@@ -313,13 +356,17 @@ INSERT INTO lane (pool_id, lane_id) VALUES
 -- Password is '123'
 INSERT INTO pms_user (email, username, password_hash, phone_no, forename, surname, balance, birth_date) VALUES
 ('c@c.com', 'coach1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567890', 'Coach', 'Smith', 1000.00, '2005-01-01'),
-('s@s.com', 'swimmer1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567891', 'Sam', 'Johnson', 500.00, '2005-01-01'),
+('s@s.com', 'swimmer1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567891', 'Sam', 'Johnson', 520.00, '2005-01-01'),
 ('n@n.com', 'nonmember1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567892', 'Noah', 'Brown', 0.00, '2005-01-01'),
-('l@l.com', 'lifeguard1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567893', 'Lisa', 'Guard', 800.00, '2005-01-01');
+('l@l.com', 'lifeguard1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567893', 'Lisa', 'Guard', 800.00, '2005-01-01'),
+('a@a.com', 'admin1', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', '+901234567894', 'Admin', 'Admin', 0.00, '2005-01-01');
 
 -- Specialized users --
 INSERT INTO coach (email, fee_per_hour, years_of_experience) VALUES
 ('c@c.com', 100.00, 5);
+
+INSERT INTO pms_admin (email) VALUES
+('a@a.com');
 
 INSERT INTO team (team_name) VALUES
 ('Dolphins'),
@@ -406,5 +453,12 @@ INSERT INTO swimmer_attend_session (email, session_name, session_date, start_hou
 ('s@s.com', '(Past) Race-Backstroke', '2024-03-16', '16:00', '17:00');
 
 -- Benefits --
-INSERT INTO benefit (benefit_id, start_date, end_date, swimmer_email) VALUES
-('Newcomers Gift: Free Spa', '2024-03-01', '2024-06-01', 's@s.com');
+INSERT INTO benefit (benefit_id, details, start_date, end_date, swimmer_email) VALUES
+(1, 'Newcomers Gift: Free Spa', '2024-03-01', '2024-06-01', 's@s.com'),
+(2, 'Signup Bonus: $20 Bonus to Balance', '2024-03-01', '2026-06-01', 's@s.com');
+
+-- Resetting benefit_id seq after manual insertion
+SELECT setval('benefit_benefit_id_seq', (SELECT MAX(benefit_id) FROM benefit));
+
+INSERT INTO benefit_member_bonus (benefit_id, bonus_amount) VALUES
+(2, 20.00);
