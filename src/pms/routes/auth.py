@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, logout_user
 
-from pms.authorization import create_user, does_user_exist
+from pms.authorization import create_swimmer, does_user_exist
 
 bp = Blueprint("auth", __name__)
 
@@ -28,8 +28,10 @@ def register():
         or not request.form.get("phone_no")
         or not request.form.get("forename")
         # or not request.form.get("middlename")
+        or not request.form.get("date_of_birth")
         or not request.form.get("surname")
         or not request.form.get("confirm_password")
+        or not request.form.get("team_name")
         or request.form.get("password") != request.form.get("confirm_password")
     ):
         return redirect(
@@ -38,7 +40,7 @@ def register():
         )
     if does_user_exist(request.form["email"]):
         return redirect(url_for("auth.register_page", error="User already exists"))
-    create_user(
+    create_swimmer(
         email=request.form["email"],
         password=request.form["password"],
         username=request.form["username"],
@@ -46,6 +48,8 @@ def register():
         forename=request.form["forename"],
         middlename=request.form["middlename"],
         surname=request.form["surname"],
+        date_of_birth=request.form["date_of_birth"],
+        team_name=request.form["team_name"],
     )
     return redirect(url_for("auth.login_page"))
 
@@ -59,7 +63,7 @@ def login():
         return redirect(url_for("login.login_page", error="Invalid email or password"))
 
 
-@bp.route("/logout", methods=["POST"])
+@bp.route("/logout", methods=["GET"])
 @login_required
 def logout():
     logout_user()

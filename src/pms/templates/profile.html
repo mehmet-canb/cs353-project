@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.html" %}
+
+<body class="bg-light">
+    {% include "nav.html" %}
+
+    <div class="container my-5">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">My Profile</h2>
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 text-center mb-4 mb-md-0">
+                                <i class="bi bi-person-circle text-primary display-1"></i>
+                                <h4 class="mt-3">{{ user.username }}</h4>
+                                <p class="text-muted">Date of Birth: {{ user.birth_date.strftime('%B %d, %Y') }}</p>
+                            </div>
+                            <div class="col-md-9">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Email</label>
+                                            <p class="form-control-plaintext">{{ user.email }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Phone Number</label>
+                                            <p class="form-control-plaintext">{{ user.phone_no }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">First Name</label>
+                                            <p class="form-control-plaintext">{{ user.forename }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Middle Name</label>
+                                            <p class="form-control-plaintext">{{ user.middlename or '-' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Last Name</label>
+                                            <p class="form-control-plaintext">{{ user.surname }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label text-muted">Current Balance</label>
+                                            <p class="form-control-plaintext">${{ "%.2f"|format(user.balance) }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="card shadow-sm mb-4">
+
+                    <div class="card-body">
+                        {% if benefits %}
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Benefit</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for benefit in benefits %}
+                                <tr>
+                                    <td>{{ benefit.benefit_id }}</td>
+                                    <td>{{ benefit.start_date }}</td>
+                                    <td>{{ benefit.end_date }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% if not benefits %}
+                                <tr>
+                                    <td colspan="3">No benefits are assigned.</td>
+                                </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p>No benefits are assigned.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>

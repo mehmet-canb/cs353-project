@@ -12,10 +12,11 @@ login_manager = LoginManager()
 
 # Note: id is email for our purposes
 class User(UserMixin):
-    def __init__(self, id, is_coach=False, is_admin=False):
+    def __init__(self, id, is_coach=False, is_admin=False, is_lifeguard=False):
         self.id = id
         self.is_coach = is_coach
         self.is_admin = is_admin
+        self.is_lifeguard = is_lifeguard
 
 
 @login_manager.user_loader
@@ -26,7 +27,8 @@ def user_loader(email) -> User | None:
     if user:
         is_coach = is_user_coach(email)
         is_admin = is_user_admin(email)
-        user = User(id=email, is_coach=is_coach, is_admin=is_admin)
+        is_lifeguard = is_user_lifeguard(email)
+        user = User(id=email, is_coach=is_coach, is_admin=is_admin, is_lifeguard=is_lifeguard)
         login_user(user)
         return user
     return None
@@ -74,10 +76,58 @@ def is_user_coach(email: str) -> bool:
     return cursor.fetchone() is not None
 
 
+
 def is_user_admin(email: str) -> bool:
     cursor = get_cursor()
     cursor.execute("SELECT * FROM pms_admin WHERE email = %s", (email,))
     return cursor.fetchone() is not None
+
+
+def is_user_lifeguard(email: str) -> bool:
+    cursor = get_cursor()
+    cursor.execute("SELECT * FROM lifeguard WHERE email = %s", (email,))
+    return cursor.fetchone() is not None
+
+
+def create_swimmer(
+    email: str,
+    password: str,
+    username: str,
+    phone_no: str,
+    forename: str,
+    middlename: str,
+    surname: str,
+    date_of_birth: str,
+    team_name: str,
+) -> None:
+    create_user(
+        email,
+        password,
+        username,
+        phone_no,
+        forename,
+        middlename,
+        surname,
+        date_of_birth,
+    )
+    cursor = get_cursor()
+    cursor.execute(
+        """
+        INSERT INTO swimmer (email, member_of_team)
+        VALUES (%s, %s)
+    """,
+        (email, team_name),
+    )
+    cursor.execute(
+        """
+        INSERT INTO team
+        VALUES (%s)
+        ON CONFLICT DO NOTHING
+        """,
+        (team_name,),
+    )
+    cursor.connection.commit()
+
 
 
 def create_user(
@@ -88,15 +138,25 @@ def create_user(
     forename: str,
     middlename: str,
     surname: str,
+    date_of_birth: str,
 ) -> None:
     password_hash = sha256(password.encode()).hexdigest()
     cursor = get_cursor()
     cursor.execute(
         """
-        INSERT INTO pms_user (email, password_hash, username, phone_no, forename, middlename, surname)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO pms_user (email, password_hash, username, phone_no, forename, middlename, surname, birth_date)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,  # noqa: E501
-        (email, password_hash, username, phone_no, forename, middlename, surname),
+        (
+            email,
+            password_hash,
+            username,
+            phone_no,
+            forename,
+            middlename,
+            surname,
+            date_of_birth,
+        ),
     )
     cursor.connection.commit()
 
@@ -108,7 +168,7 @@ def coach_required(func):
     @coach_required
     def dashboard():
         return render_template("dashboard.html")
-    """
+    """  # noqa: E501
 
     @wraps(func)
     def decorated_view(*args, **kwargs):
