@@ -17,7 +17,7 @@ CREATE TABLE team (
 CREATE TABLE swimmer (
 	email VARCHAR(255) PRIMARY KEY,
   	number_of_sessions_attended INT DEFAULT 0,
-  	member_of_team VARCHAR(512),
+  	member_of_team VARCHAR(512) DEFAULT 'INDIVIDUAL',
   	FOREIGN KEY (email) REFERENCES pms_user ON DELETE CASCADE,
   	FOREIGN KEY (member_of_team) REFERENCES team
 );
