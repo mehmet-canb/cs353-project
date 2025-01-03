@@ -163,13 +163,13 @@ CREATE TABLE benefit (
 CREATE TABLE benefit_member_bonus (
 	benefit_id SERIAL PRIMARY KEY,
 	bonus_amount DECIMAL(26, 2),
-	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE ON DELETE CASCADE
+	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
 CREATE TABLE benefit_enrollment_bonus (
 	benefit_id SERIAL PRIMARY KEY,
 	bonus_amount DECIMAL(26, 2),
-	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE ON DELETE CASCADE
+	FOREIGN KEY (benefit_id) REFERENCES benefit ON DELETE CASCADE
 );
 
 CREATE TABLE individual_session (
@@ -212,11 +212,10 @@ CREATE TABLE lifeguard_watch (
 	email VARCHAR(255),
   	pool_id VARCHAR(255),
   	watch_date DATE,
-
-  	time_slot VARCHAR(5),
-  	PRIMARY KEY (email, pool_id),
+  	start_hour TIME,
+  	end_hour TIME,
+	PRIMARY KEY (email, pool_id, watch_date, start_hour, end_hour),
   	FOREIGN KEY (email) REFERENCES lifeguard ON DELETE SET NULL,
-
   	FOREIGN KEY (pool_id) REFERENCES pool
 );
 
