@@ -49,18 +49,77 @@
 				<li>Race Sessions: {{ report_data.race_count }}</li>
 			</ul>
 			{% elif report_title == "Competition Report" %}
+			<h2>Competition Summary</h2>
 			<ul>
-				<li>Total Races: {{ report_data.total_races }}</li>
-				<li>Total Participants: {{ report_data.total_participants }}</li>
+				<li>Total Races: {{ report_data.summary.total_races }}</li>
+				<li>Total Participants: {{ report_data.summary.total_participants }}</li>
 			</ul>
+
+			<h3>Competition Details</h3>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Competition Name</th>
+						<th>Date</th>
+						<th>Start Time</th>
+						<th>End Time</th>
+						<th>Stroke Style</th>
+						<th>Participants</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for competition in report_data.competitions %}
+					<tr>
+						<td>{{ competition.competition_name }}</td>
+						<td>{{ competition.competition_date }}</td>
+						<td>{{ competition.start_hour }}</td>
+						<td>{{ competition.end_hour }}</td>
+						<td>{{ competition.stroke_style }}</td>
+						<td>{{ competition.no_of_participants }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
 			{% elif report_title == "Employee Report" %}
-			<ul>
-				<li>Total Days Worked (Lifeguards): {{ report_data.total_days_worked }}</li>
-				<li>Total Hours Worked (Coaches): {{ report_data.total_hours_worked }}</li>
-			</ul>
+			<h3>Lifeguards</h3>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Email</th>
+						<th>Scheduled Work Days</th>
+						<th>Attended Work Days</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for email, data in report_data.lifeguards.items() %}
+					<tr>
+						<td>{{ email }}</td>
+						<td>{{ data.scheduled_work_days }}</td>
+						<td>{{ data.attended_work_days }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+
+			<h3>Coaches</h3>
+			<table class="table table-striped">
+				<thead>
+					<tr>
+						<th>Email</th>
+						<th>Work Days</th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for coach in report_data.coaches %}
+					<tr>
+						<td>{{ coach.coach_email }}</td>
+						<td>{{ coach.work_days }}</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
 			{% endif %} {% endif %}
 		</div>
-
 		{% include "footer.html" %}
 	</body>
 </html>

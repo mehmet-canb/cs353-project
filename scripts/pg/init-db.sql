@@ -241,7 +241,7 @@ CREATE TABLE booking (
   	end_hour TIME,
   	PRIMARY KEY (pool_id, lane_id, session_name, session_date, start_hour, end_hour),
   	FOREIGN KEY (pool_id, lane_id) REFERENCES lane,
-  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON UPDATE CASCADE
+  	FOREIGN KEY (session_name, session_date, start_hour, end_hour) REFERENCES swimming_session ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE team_attend_race (
