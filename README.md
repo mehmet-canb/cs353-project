@@ -1,10 +1,15 @@
 # Pool Management System
 
+This repository contains a project designed and implemented as part of our database systems course. The goal of the project was to create a web application that relies solely on raw SQL statements, using a DBMS as the data source.
+
 ## Environment Setup
 
 You need to create a `.env` file in the root directory. You can use the `.env.example` file as a reference.
 
 ## Local Development
+
+> [!NOTE]
+> The instructions below assume that your operating system is **Ubuntu 22.04.5 LTS**. You may need to adjust some of the commands and the makefile contents to properly set up your development environment, depending on your operating system.
 
 Before running the application, you need to install the dependencies.
 
